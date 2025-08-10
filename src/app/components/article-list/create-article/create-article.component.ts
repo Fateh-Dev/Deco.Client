@@ -22,7 +22,8 @@ export class CreateArticleComponent {
     pricePerDay: 0,
     quantityTotal: 1,
     categoryId: undefined as number | undefined,
-    imageUrl: ''
+    imageUrl: '',
+    isActive: true
   };
 
   onSubmit(): void {
@@ -30,10 +31,14 @@ export class CreateArticleComponent {
       const now = new Date();
       const article: Article = {
         ...this.newArticle,
+        name: this.newArticle.name.trim(), // Ensure name is not just whitespace
+        categoryId: this.newArticle.categoryId ?? 0, // Ensure it's never undefined
+        quantityTotal: this.newArticle.quantityTotal ?? 1, // Ensure it has a value
+        pricePerDay: this.newArticle.pricePerDay || 0, // Ensure it has a value
+        imageUrl: this.newArticle.imageUrl || '', // Ensure it's not undefined
         id: 0, // Will be set by the server
-        categoryId: this.newArticle.categoryId || 0, // Default to 0 if undefined
         createdAt: now,
-        // updatedAt: now
+        isActive: this.newArticle.isActive ?? true // Use the value from the form or default to true
       };
       this.articleCreated.emit(article);
     }
@@ -43,11 +48,10 @@ export class CreateArticleComponent {
     this.cancel.emit();
   }
 
-  private isFormValid(): boolean {
-    return !!this.newArticle.name &&
-      this.newArticle.pricePerDay !== undefined &&
-      this.newArticle.pricePerDay >= 0 &&
-      this.newArticle.quantityTotal !== undefined &&
-      this.newArticle.quantityTotal > 0;
+  isFormValid(): boolean {
+    return !!this.newArticle.name?.trim() && // Name is required
+           this.newArticle.categoryId !== undefined && // Category is required
+           (this.newArticle.quantityTotal ?? 0) > 0 && // Quantity must be positive
+           (this.newArticle.pricePerDay ?? 0) >= 0; // Price can't be negative
   }
 }
