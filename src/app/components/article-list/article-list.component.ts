@@ -109,10 +109,18 @@ export class ArticleListComponent implements OnInit {
   }
 
   onArticleCreated(article: Article): void {
-    // Add the new article to the list and close the modal
-    this.allArticles.unshift(article);
-    this.filterArticles();
-    this.closeCreateModal();
+    this.articleService.createArticle(article).subscribe({
+      next: (createdArticle) => {
+        // Add the new article to the list
+        this.allArticles.unshift(createdArticle);
+        this.filterArticles();
+        this.closeCreateModal();
+      },
+      error: (error) => {
+        console.error('Error creating article:', error);
+        alert('Erreur lors de la création de l\'article');
+      }
+    });
   }
 
   deleteArticle(id: number): void {
