@@ -1,8 +1,26 @@
 <div class="min-h-screen bg-gray-50 py-8">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class=" mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Search Bar -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">LocationDeco</h1>
-      <p class="mt-2 text-gray-600">Location d'articles de décoration événementielle</p>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fas fa-search text-gray-400"></i>
+        </div>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()"
+          class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+          placeholder="Rechercher un article par nom ou description..."
+        >
+        <button 
+          *ngIf="searchTerm" 
+          (click)="clearSearch()"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Category Filter -->
@@ -27,10 +45,47 @@
     <div class="mb-6 flex justify-between items-center">
       <h2 class="text-2xl font-semibold text-gray-800">Articles disponibles</h2>
       <button 
-        routerLink="/articles/new"
+        (click)="openCreateModal()"
         class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-        Ajouter un article
+        <i class="fas fa-plus mr-2"></i>Ajouter un article
       </button>
+    </div>
+
+    <!-- Create Article Modal -->
+    <div *ngIf="showCreateModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true" (click)="closeCreateModal()">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Modal panel -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900">Nouvel article</h3>
+                  <button 
+                    type="button" 
+                    (click)="closeCreateModal()"
+                    class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <i class="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+                <div class="mt-2">
+                  <app-create-article 
+                    [categories]="categories"
+                    (articleCreated)="onArticleCreated($event)"
+                    (cancel)="closeCreateModal()">
+                  </app-create-article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div *ngIf="loading" class="flex justify-center items-center py-12">
@@ -47,7 +102,7 @@
       </div>
     </div>
 
-    <div *ngIf="!loading && filteredArticles.length > 0" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div *ngIf="!loading && filteredArticles.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
       <div 
         *ngFor="let article of filteredArticles" 
         class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">

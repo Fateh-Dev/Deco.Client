@@ -9,6 +9,88 @@
   overflow: hidden;
 }
 
+// Search Bar
+.search-container {
+  margin-bottom: 2rem;
+  
+  .search-input {
+    position: relative;
+    
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+    }
+    
+    .clear-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: #6B7280;
+        background-color: #F3F4F6;
+      }
+      
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+      }
+    }
+    
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.75rem;
+      border: 1px solid #E5E7EB;
+      border-radius: 0.5rem;
+      font-size: 0.9375rem;
+      color: #111827;
+      background-color: white;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      
+      &::placeholder {
+        color: #9CA3AF;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .search-container {
+    margin-bottom: 1.5rem;
+    
+    input {
+      font-size: 1rem;
+      padding: 0.875rem 1rem 0.875rem 3rem;
+    }
+    
+    .search-icon {
+      left: 1rem;
+    }
+  }
+}
+
 // You can add responsive breakpoints or custom animations here
 // For example:
 // @media (max-width: 768px) {
