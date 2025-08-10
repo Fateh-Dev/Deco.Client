@@ -1,0 +1,202 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ArticleService } from '../../services/article.service';
+import { CategoryService } from '../../services/category.service';
+import { Article } from '../../models/article';
+import { Category } from '../../models/category';
+
+@Component({
+  selector: 'app-article-list',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
+    <div class="min-h-screen bg-gray-50 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">LocationDeco</h1>
+          <p class="mt-2 text-gray-600">Location d'articles de décoration événementielle</p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="mb-6">
+          <div class="flex flex-wrap gap-2">
+            <button 
+              (click)="selectCategory(null)"
+              [class]="selectedCategoryId === null ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+              class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+              Toutes les catégories
+            </button>
+            <button 
+              *ngFor="let category of categories" 
+              (click)="selectCategory(category.id!)"
+              [class]="selectedCategoryId === category.id ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'"
+              class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+              {{ category.name }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-6 flex justify-between items-center">
+          <h2 class="text-2xl font-semibold text-gray-800">Articles disponibles</h2>
+          <button 
+            routerLink="/articles/new"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+            Ajouter un article
+          </button>
+        </div>
+
+        <div *ngIf="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+
+        <div *ngIf="!loading && filteredArticles.length === 0" class="text-center py-12">
+          <div class="text-gray-500">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun article</h3>
+            <p class="mt-1 text-sm text-gray-500">Commencez par ajouter un nouvel article.</p>
+          </div>
+        </div>
+
+        <div *ngIf="!loading && filteredArticles.length > 0" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div 
+            *ngFor="let article of filteredArticles" 
+            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+            
+            <!-- Article Image -->
+            <div class="aspect-w-16 aspect-h-9 bg-gray-200">
+              <img 
+                *ngIf="article.imageUrl" 
+                [src]="article.imageUrl" 
+                [alt]="article.name"
+                class="w-full h-48 object-cover">
+              <div 
+                *ngIf="!article.imageUrl" 
+                class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <!-- Category Badge -->
+              <div class="mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {{ article.category?.name || 'Non catégorisé' }}
+                </span>
+              </div>
+
+              <!-- Article Name -->
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ article.name }}</h3>
+              
+              <!-- Description -->
+              <p *ngIf="article.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
+                {{ article.description }}
+              </p>
+              
+              <!-- Price and Quantity -->
+              <div class="space-y-2 text-sm text-gray-500 mb-4">
+                <div class="flex justify-between">
+                  <span>Prix par jour:</span>
+                  <span class="font-medium text-green-600">
+                    {{ article.pricePerDay ? (article.pricePerDay | currency:'EUR':'symbol':'1.2-2') : 'Sur demande' }}
+                  </span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Stock disponible:</span>
+                  <span class="font-medium" [class.text-red-600]="article.quantityTotal === 0" [class.text-green-600]="article.quantityTotal > 0">
+                    {{ article.quantityTotal }} unité(s)
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="flex space-x-2">
+                <button 
+                  [routerLink]="['/articles', article.id, 'edit']"
+                  class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-md text-sm transition-colors duration-200">
+                  Modifier
+                </button>
+                <button 
+                  (click)="deleteArticle(article.id!)"
+                  class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 px-3 rounded-md text-sm transition-colors duration-200">
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: []
+})
+export class ArticleListComponent implements OnInit {
+  articles: Article[] = [];
+  categories: Category[] = [];
+  loading = true;
+  selectedCategoryId: number | null = null;
+
+  constructor(
+    private articleService: ArticleService,
+    private categoryService: CategoryService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadArticles();
+    this.loadCategories();
+  }
+
+  get filteredArticles(): Article[] {
+    if (this.selectedCategoryId === null) {
+      return this.articles;
+    }
+    return this.articles.filter(article => article.categoryId === this.selectedCategoryId);
+  }
+
+  loadArticles(): void {
+    this.loading = true;
+    this.articleService.getArticles().subscribe({
+      next: (articles) => {
+        this.articles = articles;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading articles:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  loadCategories(): void {
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
+    });
+  }
+
+  selectCategory(categoryId: number | null): void {
+    this.selectedCategoryId = categoryId;
+  }
+
+  deleteArticle(id: number): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+      this.articleService.deleteArticle(id).subscribe({
+        next: () => {
+          this.articles = this.articles.filter(article => article.id !== id);
+        },
+        error: (error) => {
+          console.error('Error deleting article:', error);
+          alert('Erreur lors de la suppression de l\'article');
+        }
+      });
+    }
+  }
+}

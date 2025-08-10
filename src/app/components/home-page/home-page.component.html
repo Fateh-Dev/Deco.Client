@@ -1,0 +1,50 @@
+<div class="dashboard">
+  <h1>Tableau de bord</h1>
+  
+  <div class="stats-container">
+    <!-- Articles Card -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #4caf50;">
+        <span class="material-icons">inventory_2</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalArticles }}</div>
+        <div class="stat-label">Articles en stock</div>
+      </div>
+    </div>
+
+    <!-- Reservations Card -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #ff9800;">
+        <span class="material-icons">event_available</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalReservations }}</div>
+        <div class="stat-label">Réservations</div>
+      </div>
+    </div>
+
+    <!-- Clients Card -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #9c27b0;">
+        <span class="material-icons">people</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalUsers }}</div>
+        <div class="stat-label">Clients</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Chargement des données...</p>
+  </div>
+  
+  <!-- Error State -->
+  <div *ngIf="error" class="error-state">
+    <span class="material-icons">error_outline</span>
+    <p>{{ error }}</p>
+  </div>
+</div>
