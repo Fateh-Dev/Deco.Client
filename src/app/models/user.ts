@@ -4,6 +4,6 @@ export interface User {
   phone: string;
   email?: string;
   eventType?: string;
-  createdAt?: Date;
+  createdAt: Date;
   isActive?: boolean;
 }

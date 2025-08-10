@@ -1,0 +1,18 @@
+// Add any custom SCSS styles here
+// The component currently uses Tailwind CSS classes in the HTML
+// You can add additional custom styles if needed
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// You can add responsive breakpoints or custom animations here
+// For example:
+// @media (max-width: 768px) {
+//   .article-grid {
+//     grid-template-columns: repeat(1, 1fr);
+//   }
+// }

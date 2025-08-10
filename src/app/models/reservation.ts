@@ -16,7 +16,7 @@ export interface Reservation {
   endDate: Date;
   status: ReservationStatus;
   totalPrice: number;
-  createdAt?: Date;
+  createdAt: Date;
   isActive?: boolean;
   user?: User;
   reservationItems?: ReservationItem[];

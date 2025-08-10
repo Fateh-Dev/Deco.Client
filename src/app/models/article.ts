@@ -8,7 +8,7 @@ export interface Article {
   quantityTotal: number;
   pricePerDay?: number;
   imageUrl?: string;
-  createdAt?: Date;
+  createdAt: Date;
   isActive?: boolean;
   category?: Category;
 }
