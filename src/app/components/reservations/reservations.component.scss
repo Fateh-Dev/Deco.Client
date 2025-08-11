@@ -1,0 +1,13 @@
+ /* Custom classes for status badges - add these to your global styles or component styles */
+.status-EnAttente {
+  @apply bg-yellow-400 text-black;
+}
+.status-Confirmee {
+  @apply bg-green-500 text-white;
+}
+.status-Annulee {
+  @apply bg-red-500 text-white;
+}
+.status-Terminee {
+  @apply bg-blue-500 text-white;
+}
