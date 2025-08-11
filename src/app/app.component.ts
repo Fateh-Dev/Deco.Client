@@ -19,7 +19,7 @@ export class AppComponent {
   navItems: NavItem[] = [
     { label: 'Accueil', route: '/home' },
     { label: 'Articles', route: '/articles' },
-    { label: 'Réservations', route: '/reservation' },
+    { label: 'Réservations', route: '/reservations' },
     { label: 'Clients', route: '/clients' }
   ];
 
