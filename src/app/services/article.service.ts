@@ -1,26 +1,41 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Article } from '../models/article';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ArticleService {
-  private apiUrl = 'http://localhost:5199/api/articles';
+  private baseUrl = 'http://localhost:5199';
+  private apiUrl = `${this.baseUrl}/api/articles`;
 
   constructor(private http: HttpClient) { }
 
+  private ensureImageUrl(article: Article): Article {
+    if (article.imageUrl && !article.imageUrl.startsWith('http') && !article.imageUrl.startsWith('data:')) {
+      // If the URL is relative, prepend the base URL
+      article.imageUrl = `${this.baseUrl}${article.imageUrl.startsWith('/') ? '' : '/'}${article.imageUrl}`;
+    }
+    return article;
+  }
+
   getArticles(): Observable<Article[]> {
-    return this.http.get<Article[]>(this.apiUrl);
+    return this.http.get<Article[]>(this.apiUrl).pipe(
+      map(articles => articles.map(article => this.ensureImageUrl(article)))
+    );
   }
 
   getArticle(id: number): Observable<Article> {
-    return this.http.get<Article>(`${this.apiUrl}/${id}`);
+    return this.http.get<Article>(`${this.apiUrl}/${id}`).pipe(
+      map(article => this.ensureImageUrl(article))
+    );
   }
 
   getArticlesByCategory(categoryId: number): Observable<Article[]> {
-    return this.http.get<Article[]>(`${this.apiUrl}/category/${categoryId}`);
+    return this.http.get<Article[]>(`${this.apiUrl}/category/${categoryId}`).pipe(
+      map(articles => articles.map(article => this.ensureImageUrl(article)))
+    );
   }
 
   createArticle(article: Article): Observable<Article> {

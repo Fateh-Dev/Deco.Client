@@ -1,39 +1,84 @@
-/* Custom styles for additional modern effects */
-.nav-link-active {
-    position: relative;
+/* Sidebar specific styles */
+aside {
+  /* Ensure sidebar stays fixed on mobile too */
+  @media (max-width: 768px) {
+    width: 16px * 4; /* 4rem = 64px */
   }
-  
-  .nav-link-active::before {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6, #3b82f6);
-    border-radius: 1px;
+}
+
+/* Icon hover animations */
+.group svg {
+  transition: all 0.3s ease;
+}
+
+.group:hover svg {
+  transform: scale(1.1);
+}
+
+/* Active route indicator */
+.router-link-active {
+  position: relative;
+}
+
+.router-link-active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 2px;
+}
+
+/* Tooltip animations */
+.group:hover .absolute {
+  animation: fadeInTooltip 0.2s ease-out;
+}
+
+@keyframes fadeInTooltip {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
   }
-  
-  /* Smooth scroll behavior */
-  html {
-    scroll-behavior: smooth;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
-  
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for main content */
+main::-webkit-scrollbar {
+  width: 8px;
+}
+
+main::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 4px;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb, #7c3aed);
+}
+
+/* Ensure proper spacing for content */
+main {
+  padding-left: 0; /* Remove default padding since we have ml-16 */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  main {
+    margin-left: 4rem; /* Ensure content doesn't overlap sidebar on small screens */
   }
-  
-  ::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #2563eb, #7c3aed);
-  }
+}

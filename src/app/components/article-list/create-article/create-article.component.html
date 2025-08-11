@@ -61,19 +61,63 @@
     <!-- Right column -->
     <div class="space-y-6">
       <!-- Image URL -->
-      <div class="space-y-2">
-        <label for="imageUrl" class="block text-sm font-medium text-gray-700">
-          URL de l'image
-          <span class="block text-xs text-gray-500 mt-1">Lien vers une image de l'article</span>
-        </label>
-        <input type="url" id="imageUrl" name="imageUrl" [(ngModel)]="newArticle.imageUrl"
-          class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3 border"
-          placeholder="https://example.com/image.jpg">
-        <div *ngIf="newArticle.imageUrl" class="mt-3">
-          <img [src]="newArticle.imageUrl" alt="Aperçu de l'image"
-            class="w-full h-48 object-cover rounded-lg shadow border border-gray-200"
-            onerror="this.src='https://via.placeholder.com/400x300?text=Image+non+disponible'">
-          <p class="text-xs text-gray-500 mt-1 text-center">Aperçu de l'image</p>
+      <div class="space-y-4">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Téléverser une image
+            <span class="block text-xs text-gray-500 mt-1">Sélectionnez une image pour l'article</span>
+          </label>
+          
+          <!-- File input -->
+          <div class="mt-1 flex items-center">
+            <label class="cursor-pointer">
+              <span class="sr-only">Sélectionner un fichier</span>
+              <input type="file" 
+                     (change)="onFileSelected($event)" 
+                     accept="image/*"
+                     class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100">
+            </label>
+            
+            <!-- Upload button
+            <button type="button" 
+                    (click)="uploadFile()" 
+                    [disabled]="!selectedFile || isUploading"
+                    class="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span *ngIf="!isUploading">Téléverser</span>
+              <span *ngIf="isUploading">Téléversement en cours...</span>
+            </button> -->
+          </div>
+          
+          <!-- Upload progress -->
+          <div *ngIf="isUploading" class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div class="bg-blue-600 h-2.5 rounded-full" [style.width.%]="uploadProgress"></div>
+          </div>
+          
+          <!-- Error message -->
+          <p *ngIf="uploadError" class="mt-2 text-sm text-red-600">
+            {{ uploadError }}
+          </p>
+          
+          <!-- Image preview -->
+          <div *ngIf="previewUrl" class="mt-4">
+            <p class="text-sm font-medium text-gray-700 mb-2">Aperçu de l'image :</p>
+            <div class="relative">
+              <img [src]="previewUrl" 
+                   alt="Aperçu de l'image"
+                   class="w-full h-48 object-contain rounded-lg border border-gray-200">
+              <!-- <div *ngIf="newArticle.imageUrl" class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                Téléversé
+              </div> -->
+            </div>
+          </div>
+          
+          <!-- Hidden URL input for the form -->
+          <input type="hidden" name="imageUrl" [(ngModel)]="newArticle.imageUrl">
         </div>
       </div>
 

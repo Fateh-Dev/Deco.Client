@@ -1,13 +1,15 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule, HttpEventType } from '@angular/common/http';
+import { FileUploadService } from '../../../services/file-upload.service';
 import { Article } from '../../../models/article';
 import { Category } from '../../../models/category';
 
 @Component({
   selector: 'app-create-article',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './create-article.component.html',
   styleUrls: ['./create-article.component.scss']
 })
@@ -15,6 +17,12 @@ export class CreateArticleComponent {
   @Input() categories: Category[] = [];
   @Output() articleCreated = new EventEmitter<Article>();
   @Output() cancel = new EventEmitter<void>();
+
+  selectedFile: File | null = null;
+  uploadProgress: number = 0;
+  isUploading: boolean = false;
+  uploadError: string | null = null;
+  previewUrl: string | ArrayBuffer | null = null;
 
   newArticle = {
     name: '',
@@ -26,22 +34,119 @@ export class CreateArticleComponent {
     isActive: true
   };
 
-  onSubmit(): void {
-    if (this.isFormValid()) {
-      const now = new Date();
-      const article: Article = {
-        ...this.newArticle,
-        name: this.newArticle.name.trim(), // Ensure name is not just whitespace
-        categoryId: this.newArticle.categoryId ?? 0, // Ensure it's never undefined
-        quantityTotal: this.newArticle.quantityTotal ?? 1, // Ensure it has a value
-        pricePerDay: this.newArticle.pricePerDay || 0, // Ensure it has a value
-        imageUrl: this.newArticle.imageUrl || '', // Ensure it's not undefined
-        id: 0, // Will be set by the server
-        createdAt: now,
-        isActive: this.newArticle.isActive ?? true // Use the value from the form or default to true
+  constructor(private fileUploadService: FileUploadService) { }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.uploadError = null;
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl = reader.result;
       };
-      this.articleCreated.emit(article);
+      reader.readAsDataURL(file);
     }
+  }
+
+  uploadFile(): void {
+    if (!this.selectedFile) return;
+    
+    this.isUploading = true;
+    this.uploadProgress = 0;
+    
+    this.fileUploadService.upload(this.selectedFile).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          this.uploadProgress = Math.round(100 * event.loaded / (event.total || 1));
+        } else if (event.type === HttpEventType.Response) {
+          // Assuming the server responds with the file URL
+          this.newArticle.imageUrl = event.body.fileUrl;
+          this.isUploading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Upload failed:', error);
+        this.uploadError = 'Échec du téléversement de l\'image. Veuillez réessayer.';
+        this.isUploading = false;
+      }
+    });
+  }
+
+  onSubmit(): void {
+    if (!this.isFormValid()) {
+      return;
+    }
+
+    // If there's a selected file but no image URL yet, upload the file first
+    if (this.selectedFile && !this.newArticle.imageUrl) {
+      this.isUploading = true;
+      this.uploadProgress = 0;
+      
+      this.fileUploadService.upload(this.selectedFile).subscribe({
+        next: (event: any) => {
+          console.log('Upload event:', event);
+          
+          if (event.type === HttpEventType.UploadProgress) {
+            // Update progress
+            this.uploadProgress = Math.round(100 * event.loaded / (event.total || 1));
+          } else if (event.type === HttpEventType.Response) {
+            // Handle successful upload
+            try {
+              if (event.body && event.body.fileUrl) {
+                this.newArticle.imageUrl = event.body.fileUrl;
+                this.uploadError = null;
+                this.isUploading = false;
+                // Now that we have the image URL, submit the form
+                this.submitArticle();
+              } else {
+                throw new Error('Invalid server response: Missing fileUrl');
+              }
+            } catch (e) {
+              console.error('Error processing upload response:', e);
+              this.uploadError = 'Erreur lors du traitement de la réponse du serveur.';
+              this.isUploading = false;
+            }
+          }
+        },
+        error: (error) => {
+          console.error('Upload failed:', error);
+          let errorMessage = 'Échec du téléversement de l\'image. Veuillez réessayer.';
+          
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.status === 400) {
+            errorMessage = 'Format de fichier non valide. Seuls les JPG, JPEG, PNG et GIF sont acceptés.';
+          } else if (error.status === 0) {
+            errorMessage = 'Impossible de se connecter au serveur. Veuillez vérifier votre connexion.';
+          }
+          
+          this.uploadError = errorMessage;
+          this.isUploading = false;
+        }
+      });
+    } else {
+      // If no file to upload or file is already uploaded, submit the form
+      this.submitArticle();
+    }
+  }
+
+  private submitArticle(): void {
+    const now = new Date();
+    const article: Article = {
+      ...this.newArticle,
+      name: this.newArticle.name.trim(),
+      categoryId: this.newArticle.categoryId ?? 0,
+      quantityTotal: this.newArticle.quantityTotal ?? 1,
+      pricePerDay: this.newArticle.pricePerDay || 0,
+      imageUrl: this.newArticle.imageUrl || '',
+      id: 0, // Will be set by the server
+      createdAt: now,
+      isActive: this.newArticle.isActive ?? true
+    };
+    this.articleCreated.emit(article);
   }
 
   onCancel(): void {
