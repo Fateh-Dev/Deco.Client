@@ -1,6 +1,5 @@
-import { User } from './user';
 import { ReservationItem } from './reservation-item';
-import { Payment } from './payment';
+import { Client } from './client';
 
 export enum ReservationStatus {
   EnAttente = 'EnAttente',
@@ -11,14 +10,15 @@ export enum ReservationStatus {
 
 export interface Reservation {
   id?: number;
-  userId: number;
+  clientId: number;
   startDate: Date;
   endDate: Date;
   status: ReservationStatus;
   totalPrice: number;
   createdAt: Date;
-  isActive?: boolean;
-  user?: User;
-  reservationItems?: ReservationItem[];
-  payments?: Payment[];
+  isActive: boolean;
+  
+  // Navigation properties
+  client?: Client;
+  reservationItems: ReservationItem[];
 }

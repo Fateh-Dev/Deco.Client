@@ -95,7 +95,7 @@
                 </div>
                 <span class="text-gray-700 text-sm font-medium">Clients</span>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ totalUsers | number }}</div>
+              <div class="text-3xl font-bold text-gray-900 mb-2">{{ totalClients | number }}</div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1">
                   <i class="fas fa-user-plus text-purple-600 text-sm"></i>
@@ -205,7 +205,7 @@
                 <i class="fas fa-calendar text-gray-700"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-gray-900 font-medium truncate">{{ getUserName(reservation.userId) }}</p>
+                <p class="text-gray-900 font-medium truncate">{{ getUserName(reservation.clientId) }}</p>
                 <div class="flex items-center space-x-2">
                   <p class="text-gray-600 text-sm">{{ reservation.startDate | date:'shortDate' }}</p>
                   <i class="fas fa-arrow-right text-gray-400 text-xs"></i>

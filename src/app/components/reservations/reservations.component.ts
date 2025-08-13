@@ -5,8 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ReservationService } from '../../services/reservation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation';
-import { UserService } from '../../services/user.service';
-import { User } from '../../models/user';
+import { ClientService } from '../../services/client.service';
+import { Client } from '../../models/client';
 import { CreateReservationComponent } from './create-reservation/create-reservation.component';
 
 @Component({
@@ -32,7 +32,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
 
   constructor(
     private reservationService: ReservationService,
-    private userService: UserService
+    private clientService: ClientService
   ) { }
 
   ngOnInit(): void {
@@ -61,38 +61,34 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (reservations) => {
           this.reservations = reservations;
+          this.loadClientDataForReservations();
           this.filterReservations();
           this.loading = false;
-
-          // If we have reservations, load user data for each reservation
-          if (this.reservations.length > 0) {
-            this.loadUserDataForReservations();
-          }
         },
         error: (error) => {
           console.error('Error loading reservations:', error);
-          this.error = 'Erreur lors du chargement des réservations. Veuillez réessayer.';
+          this.error = 'Failed to load reservations. Please try again later.';
           this.loading = false;
         }
       });
   }
 
   /**
-   * Loads user data for each reservation
+   * Loads client data for each reservation
    */
-  private loadUserDataForReservations(): void {
+  private loadClientDataForReservations(): void {
     this.reservations.forEach(reservation => {
-      if (reservation.userId && !reservation.user) {
-        this.userService.getUser(reservation.userId)
+      if (reservation.clientId && !reservation.client) {
+        this.clientService.getClient(reservation.clientId)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-            next: (user) => {
-              reservation.user = user;
+            next: (client) => {
+              reservation.client = client;
               // Update the filtered reservations if needed
               this.filterReservations();
             },
             error: (error) => {
-              console.error(`Error loading user data for reservation ${reservation.id}:`, error);
+              console.error(`Error loading client data for reservation ${reservation.id}:`, error);
             }
           });
       }
@@ -107,11 +103,11 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       const statusMatch = this.selectedStatus === 'all' ||
         reservation.status === this.selectedStatus;
 
-      // Filter by search term (search in ID, user name, or user email)
+      // Filter by search term (search in ID, client name, or client email)
       const searchMatch = !searchTerm ||
         (reservation.id?.toString().includes(searchTerm)) ||
-        (reservation.user?.name?.toLowerCase().includes(searchTerm)) ||
-        (reservation.user?.email?.toLowerCase().includes(searchTerm));
+        (reservation.client?.name?.toLowerCase().includes(searchTerm)) ||
+        (reservation.client?.email?.toLowerCase().includes(searchTerm));
 
       return statusMatch && searchMatch;
     });

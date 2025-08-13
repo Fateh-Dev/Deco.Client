@@ -1,1 +1,69 @@
-<p>client-list works!</p>
+<div class="client-list-container">
+  <h2>Client List</h2>
+  
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-input">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="onSearch()" 
+        placeholder="Search by name or phone number..."
+        class="form-control"
+      >
+      <button 
+        *ngIf="searchTerm" 
+        (click)="clearSearch()" 
+        class="clear-btn"
+        aria-label="Clear search"
+      >
+        &times;
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading clients...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-state">
+    <p class="error-message">{{ error }}</p>
+    <button (click)="loadClients()" class="btn btn-primary">Retry</button>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="!isLoading && !error && filteredClients.length === 0" class="no-results">
+    <p>No clients found.</p>
+    <button *ngIf="searchTerm" (click)="clearSearch()" class="btn btn-secondary">Clear search</button>
+  </div>
+
+  <!-- Client List -->
+  <div *ngIf="!isLoading && !error && filteredClients.length > 0" class="client-list">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of filteredClients">
+            <td>{{ client.name }}</td>
+            <td>{{ client.phone || 'N/A' }}</td>
+            <td>{{ client.email || 'N/A' }}</td>
+            <td>
+              <button class="btn btn-sm btn-primary">View</button>
+              <button class="btn btn-sm btn-secondary ms-2">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

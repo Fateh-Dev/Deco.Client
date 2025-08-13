@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ArticleService } from '../../services/article.service';
 import { ReservationService } from '../../services/reservation.service';
-import { UserService } from '../../services/user.service';
+// UserService is no longer needed as we're using ClientService now
+import { ClientService } from '../../services/client.service';
 import { Article } from '../../models/article';
 import { Reservation, ReservationStatus } from '../../models/reservation';
 import { User } from '../../models/user';
@@ -21,12 +22,13 @@ import { User } from '../../models/user';
 export class HomePageComponent implements OnInit {
   articles: Article[] = [];
   reservations: Reservation[] = [];
-  users: User[] = [];
+  // Using Client instead of User to match our updated model
+  clients: any[] = [];
   
   // Dashboard statistics
   totalArticles = 0;
   totalReservations = 0;
-  totalUsers = 0;
+  totalClients = 0;
   totalStock = 0;
   
   // Loading states
@@ -56,7 +58,7 @@ export class HomePageComponent implements OnInit {
   constructor(
     private articleService: ArticleService,
     private reservationService: ReservationService,
-    private userService: UserService,
+    private clientService: ClientService,
     private router: Router
   ) {}
 
@@ -75,7 +77,7 @@ export class HomePageComponent implements OnInit {
         this.totalArticles = articles.length;
         this.totalStock = articles.reduce((sum, article) => sum + article.quantityTotal, 0);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading articles:', error);
         this.error = 'Erreur lors du chargement des articles';
       }
@@ -87,22 +89,22 @@ export class HomePageComponent implements OnInit {
         this.reservations = reservations;
         this.totalReservations = reservations.length;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading reservations:', error);
         this.error = 'Erreur lors du chargement des réservations';
       }
     });
 
-    // Load users
-    this.userService.getUsers().subscribe({
-      next: (users) => {
-        this.users = users;
-        this.totalUsers = users.length;
+    // Load clients
+    this.clientService.getClients().subscribe({
+      next: (clients: any[]) => {
+        this.clients = clients;
+        this.totalClients = clients.length;
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        this.error = 'Erreur lors du chargement des utilisateurs';
+      error: (error: any) => {
+        console.error('Error loading clients:', error);
+        this.error = 'Erreur lors du chargement des clients';
         this.loading = false;
       }
     });
@@ -132,8 +134,8 @@ export class HomePageComponent implements OnInit {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
-    return this.users.filter(user => {
-      const createdDate = new Date(user.createdAt);
+    return this.clients.filter((client: any) => {
+      const createdDate = new Date(client.createdAt);
       return createdDate.getMonth() === currentMonth && 
              createdDate.getFullYear() === currentYear;
     }).length;
@@ -187,9 +189,9 @@ export class HomePageComponent implements OnInit {
     return this.categoryIcons[categoryId] || 'fa-tag';
   }
 
-  getUserName(userId: number): string {
-    const user = this.users.find(u => u.id === userId);
-    return user ? user.name : 'Client inconnu';
+  getUserName(clientId: number): string {
+    const client = this.clients.find(c => c.id === clientId);
+    return client ? client.name : 'Client inconnu';
   }
 
   getStatusClass(status: string): string {
@@ -245,7 +247,7 @@ export class HomePageComponent implements OnInit {
       totalStock: this.totalStock,
       totalReservations: this.totalReservations,
       activeReservations: this.getActiveReservations(),
-      totalUsers: this.totalUsers,
+      totalClients: this.totalClients,
       newClientsThisMonth: this.getNewClientsThisMonth(),
       monthlyRevenue: this.getMonthlyRevenue(),
       revenueGrowth: this.getRevenueGrowth()
@@ -264,7 +266,7 @@ export class HomePageComponent implements OnInit {
     
 📦 Articles: ${this.totalArticles} (${this.totalStock} unités)
 📅 Réservations: ${this.totalReservations} (${this.getActiveReservations()} actives)
-👥 Clients: ${this.totalUsers} (${this.getNewClientsThisMonth()} nouveaux ce mois)
+👥 Clients: ${this.totalClients} (${this.getNewClientsThisMonth()} nouveaux ce mois)
 💰 Revenus ce mois: ${this.getMonthlyRevenue()}€ (${this.getRevenueGrowth()}%)`);
   }
 

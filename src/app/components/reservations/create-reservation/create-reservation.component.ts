@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { Reservation, ReservationStatus } from '../../../models/reservation';
 import { Article } from '../../../models/article';
-import { User } from '../../../models/user';
+import { Client } from '../../../models/client';
 import { ArticleService } from '../../../services/article.service';
-import { UserService } from '../../../services/user.service';
+import { ClientService } from '../../../services/client.service';
 import { ReservationService } from '../../../services/reservation.service';
 import { ReservationItem } from '../../../models/reservation-item';
 
@@ -22,7 +22,7 @@ export class CreateReservationComponent implements OnInit {
   @Output() cancel = new EventEmitter<void>();
 
   // Form model
-  clients: User[] = [];
+  clients: Client[] = [];
   selectedClientId: number | null = null;
   startDate: Date = new Date();
   endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -44,7 +44,7 @@ export class CreateReservationComponent implements OnInit {
 
   constructor(
     private articleService: ArticleService,
-    private userService: UserService,
+    private clientService: ClientService,
     private reservationService: ReservationService
   ) { }
 
@@ -57,12 +57,12 @@ export class CreateReservationComponent implements OnInit {
     this.error = null;
     
     // Load clients and articles in parallel
-    const loadClients$ = this.userService.getUsers();
+    const loadClients$ = this.clientService.getClients();
     const loadArticles$ = this.articleService.getArticles();
     
     // Use forkJoin to wait for both requests to complete
     forkJoin([loadClients$, loadArticles$]).subscribe({
-      next: ([clients, articles]: [User[], Article[]]) => {
+      next: ([clients, articles]: [Client[], Article[]]) => {
         this.clients = clients;
         this.articles = articles;
         this.loading = false;
@@ -175,7 +175,7 @@ export class CreateReservationComponent implements OnInit {
     
     // Create a new reservation object with proper types
     const newReservation: Reservation = {
-      userId: this.selectedClientId,
+      clientId: this.selectedClientId,
       startDate: startDate,
       endDate: endDate,
       status: ReservationStatus.EnAttente,

@@ -177,8 +177,8 @@
           <td class="px-4 py-4 border-b border-gray-100">#{{ reservation?.id }}</td>
           <td class="px-4 py-4 border-b border-gray-100">
             <div>
-              <div class="font-medium text-slate-700">{{ reservation?.user?.name || 'N/A' }}</div>
-              <div class="text-xs text-gray-500 mt-1" *ngIf="reservation?.user?.phone">{{ reservation?.user?.phone }}</div>
+              <div class="font-medium text-slate-700">{{ reservation?.client?.name || 'N/A' }}</div>
+              <div class="text-xs text-gray-500 mt-1" *ngIf="reservation?.client?.phone">{{ reservation?.client?.phone }}</div>
             </div>
           </td>
           <td class="px-4 py-4 border-b border-gray-100">{{ reservation?.startDate | date:'dd/MM/yyyy' }}</td>
