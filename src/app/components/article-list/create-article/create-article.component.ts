@@ -80,12 +80,26 @@ export class CreateArticleComponent {
       this.selectedFile = file;
       this.uploadError = null;
       
-      // Create preview
+      // Create preview for the new file
       const reader = new FileReader();
       reader.onload = () => {
         this.previewUrl = reader.result;
       };
       reader.readAsDataURL(file);
+    }
+  }
+
+  // Method to clear the current image
+  clearImage(): void {
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.newArticle.imageUrl = '';
+    this.uploadError = null;
+    
+    // Clear the file input
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
     }
   }
 
@@ -118,8 +132,9 @@ export class CreateArticleComponent {
       return;
     }
 
-    // If there's a selected file but no image URL yet, upload the file first
-    if (this.selectedFile && !this.newArticle.imageUrl) {
+    // Check if user selected a new file to upload
+    if (this.selectedFile) {
+      // Upload the new file first
       this.isUploading = true;
       this.uploadProgress = 0;
       
@@ -137,7 +152,7 @@ export class CreateArticleComponent {
                 this.newArticle.imageUrl = event.body.fileUrl;
                 this.uploadError = null;
                 this.isUploading = false;
-                // Now that we have the image URL, submit the form
+                // Now that we have the new image URL, submit the form
                 this.submitArticle();
               } else {
                 throw new Error('Invalid server response: Missing fileUrl');
@@ -166,7 +181,7 @@ export class CreateArticleComponent {
         }
       });
     } else {
-      // If no file to upload or file is already uploaded, submit the form
+      // No new file selected, submit with existing image URL (or empty if no image)
       this.submitArticle();
     }
   }

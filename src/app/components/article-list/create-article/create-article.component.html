@@ -63,65 +63,139 @@
 
     <!-- Right column -->
     <div class="space-y-6">
-      <!-- Image URL -->
+      <!-- Image Section -->
       <div class="space-y-4">
-        <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700">
-            Téléverser une image
-            <span class="block text-xs text-gray-500 mt-1">Sélectionnez une image pour l'article</span>
-          </label>
+        <label class="block text-sm font-medium text-gray-700">
+          Image de l'article
+          <span class="block text-xs text-gray-500 mt-1">
+            {{ isEditMode && newArticle.imageUrl && !selectedFile ? 'Image actuelle ou téléverser une nouvelle' : 'Sélectionnez une image pour l\'article' }}
+          </span>
+        </label>
+        
+        <!-- Image Display Container -->
+        <div class="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors duration-200">
           
-          <!-- File input -->
-          <div class="mt-1 flex items-center">
-            <label class="cursor-pointer">
-              <span class="sr-only">Sélectionner un fichier</span>
-              <input type="file" 
-                     (change)="onFileSelected($event)" 
-                     accept="image/*"
-                     class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100">
-            </label>
-            
-            <!-- Upload button
-            <button type="button" 
-                    (click)="uploadFile()" 
-                    [disabled]="!selectedFile || isUploading"
-                    class="ml-2 inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50">
-              <span *ngIf="!isUploading">Téléverser</span>
-              <span *ngIf="isUploading">Téléversement en cours...</span>
-            </button> -->
-          </div>
-          
-          <!-- Upload progress -->
-          <div *ngIf="isUploading" class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div class="bg-blue-600 h-2.5 rounded-full" [style.width.%]="uploadProgress"></div>
-          </div>
-          
-          <!-- Error message -->
-          <p *ngIf="uploadError" class="mt-2 text-sm text-red-600">
-            {{ uploadError }}
-          </p>
-          
-          <!-- Image preview -->
-          <div *ngIf="previewUrl" class="mt-4">
-            <p class="text-sm font-medium text-gray-700 mb-2">Aperçu de l'image :</p>
-            <div class="relative">
-              <img [src]="previewUrl" 
-                   alt="Aperçu de l'image"
-                   class="w-full h-48 object-contain rounded-lg border border-gray-200">
-              <!-- <div *ngIf="newArticle.imageUrl" class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                Téléversé
-              </div> -->
+          <!-- Current Image Display (for edit mode) -->
+          <div *ngIf="isEditMode && newArticle.imageUrl && !selectedFile && !previewUrl" class="relative group">
+            <div class="aspect-video w-full overflow-hidden rounded-t-xl bg-white">
+              <img [src]="newArticle.imageUrl" 
+                   alt="Image actuelle de l'article"
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x200?text=Image+non+disponible'">
+              
+              <!-- Overlay on hover -->
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div class="text-white text-sm font-medium">Image actuelle</div>
+              </div>
+              
+              <!-- Remove button -->
+              <button type="button" 
+                      (click)="clearImage()"
+                      class="absolute top-3 right-3 bg-white shadow-lg hover:bg-red-50 text-red-600 rounded-full p-2 text-sm transition-all duration-200 hover:scale-110 opacity-80 hover:opacity-100">
+                <i class="fas fa-times w-3 h-3"></i>
+              </button>
+            </div>
+            <div class="px-4 py-3 bg-gradient-to-r from-green-50 to-blue-50">
+              <div class="flex items-center text-xs text-gray-600">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                Image actuelle chargée • Cliquez sur le X pour la supprimer
+              </div>
             </div>
           </div>
           
-          <!-- Hidden URL input for the form -->
-          <input type="hidden" name="imageUrl" [(ngModel)]="newArticle.imageUrl">
+          <!-- New Image Preview (when file is selected) -->
+          <div *ngIf="previewUrl && selectedFile" class="relative group">
+            <div class="aspect-video w-full overflow-hidden rounded-t-xl bg-white">
+              <img [src]="previewUrl" 
+                   alt="Aperçu de la nouvelle image"
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+              
+              <!-- Overlay on hover -->
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div class="text-white text-sm font-medium">Nouvelle image</div>
+              </div>
+              
+              <!-- Status badge -->
+              <div class="absolute top-3 left-3 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                <i class="fas fa-upload mr-1"></i>
+                Nouvelle image
+              </div>
+              
+              <!-- Remove button -->
+              <button type="button" 
+                      (click)="clearImage()"
+                      class="absolute top-3 right-3 bg-white shadow-lg hover:bg-red-50 text-red-600 rounded-full p-2 text-sm transition-all duration-200 hover:scale-110 opacity-80 hover:opacity-100">
+                <i class="fas fa-times w-3 h-3"></i>
+              </button>
+            </div>
+            <div class="px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div class="flex items-center text-xs text-gray-600">
+                <i class="fas fa-image text-blue-500 mr-2"></i>
+                Nouvelle image sélectionnée • Sera téléversée lors de l'enregistrement
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State / File Upload Area -->
+          <div *ngIf="!previewUrl && !(isEditMode && newArticle.imageUrl && !selectedFile)" class="p-8 text-center">
+            <div class="mb-4">
+              <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-cloud-upload-alt text-2xl text-gray-400"></i>
+              </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-700 mb-1">Téléverser une image</h3>
+            <p class="text-xs text-gray-500 mb-4">PNG, JPG, GIF jusqu'à 10MB</p>
+            
+            <!-- File input styled as button -->
+            <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors duration-200">
+              <i class="fas fa-plus mr-2"></i>
+              Sélectionner une image
+              <input type="file" 
+                     (change)="onFileSelected($event)" 
+                     accept="image/*"
+                     class="sr-only">
+            </label>
+          </div>
+          
+          <!-- File input for when image exists (alternative upload) -->
+          <div *ngIf="previewUrl || (isEditMode && newArticle.imageUrl && !selectedFile)" class="border-t border-gray-200 bg-gray-50 px-4 py-3 rounded-b-xl">
+            <label class="inline-flex items-center px-3 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-medium rounded-md cursor-pointer transition-colors duration-200">
+              <i class="fas fa-exchange-alt mr-2"></i>
+              Changer l'image
+              <input type="file" 
+                     (change)="onFileSelected($event)" 
+                     accept="image/*"
+                     class="sr-only">
+            </label>
+          </div>
         </div>
+        
+        <!-- Upload progress -->
+        <div *ngIf="isUploading" class="space-y-2">
+          <div class="flex items-center justify-between text-xs text-gray-600">
+            <span class="flex items-center">
+              <i class="fas fa-spinner fa-spin mr-2"></i>
+              Téléversement en cours...
+            </span>
+            <span class="font-medium">{{ uploadProgress }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300 ease-out" 
+                 [style.width.%]="uploadProgress">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Error message -->
+        <div *ngIf="uploadError" class="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div class="flex items-center text-sm text-red-600">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            {{ uploadError }}
+          </div>
+        </div>
+        
+        <!-- Hidden URL input for the form -->
+        <input type="hidden" name="imageUrl" [(ngModel)]="newArticle.imageUrl">
       </div>
 
       <!-- Category -->
@@ -149,9 +223,10 @@
       class="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50">
       Annuler
     </button>
-    <button type="submit" [disabled]="!isFormValid()"
+    <button type="submit" [disabled]="!isFormValid() || isUploading"
       class="inline-flex items-center px-5 py-2.5 text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-70">
-      Enregistrer l'article
+      <span *ngIf="!isUploading">{{ isEditMode ? 'Mettre à jour l\'article' : 'Enregistrer l\'article' }}</span>
+      <span *ngIf="isUploading">Téléversement...</span>
     </button>
   </div>
   <pre> {{ newArticle | json }}</pre>
