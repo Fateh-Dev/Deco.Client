@@ -1,1 +1,97 @@
-<p>create-client works!</p>
+<form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <!-- Name -->
+    <div>
+      <label for="name" class="block text-sm font-medium text-gray-700">Nom complet <span class="text-red-500">*</span></label>
+      <input type="text" id="name" formControlName="name"
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+             [ngClass]="{'border-red-300': hasError('name', 'required') || hasError('name', 'minlength')}">
+      <div *ngIf="hasError('name', 'required')" class="mt-1 text-sm text-red-600">
+        Le nom est requis
+      </div>
+      <div *ngIf="hasError('name', 'minlength')" class="mt-1 text-sm text-red-600">
+        Le nom doit contenir au moins 3 caractères
+      </div>
+    </div>
+  
+    <!-- Phone -->
+    <div>
+      <label for="phone" class="block text-sm font-medium text-gray-700">Téléphone <span class="text-red-500">*</span></label>
+      <input type="tel" id="phone" formControlName="phone"
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+             [ngClass]="{'border-red-300': hasError('phone', 'required') || hasError('phone', 'pattern')}">
+      <div *ngIf="hasError('phone', 'required')" class="mt-1 text-sm text-red-600">
+        Le numéro de téléphone est requis
+      </div>
+      <div *ngIf="hasError('phone', 'pattern')" class="mt-1 text-sm text-red-600">
+        Format de téléphone invalide (10-15 chiffres)
+      </div>
+    </div>
+  
+    <!-- Email -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+      <input type="email" id="email" formControlName="email"
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+             [ngClass]="{'border-red-300': hasError('email', 'email')}">
+      <div *ngIf="hasError('email', 'email')" class="mt-1 text-sm text-red-600">
+        Format d'email invalide
+      </div>
+    </div>
+  
+    <!-- Company Name -->
+    <div>
+      <label for="companyName" class="block text-sm font-medium text-gray-700">Nom de l'entreprise</label>
+      <input type="text" id="companyName" formControlName="companyName"
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+    </div>
+  
+    <!-- Event Type -->
+    <div>
+      <label for="eventType" class="block text-sm font-medium text-gray-700">Type d'événement</label>
+      <select id="eventType" formControlName="eventType"
+              class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm">
+        <option value="">Sélectionner un type d'événement</option>
+        <option value="Mariage">Mariage</option>
+        <option value="Anniversaire">Anniversaire</option>
+        <option value="Entreprise">Événement d'entreprise</option>
+        <option value="Fête privée">Fête privée</option>
+        <option value="Conférence">Conférence</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+  
+    <!-- Address -->
+    <div>
+      <label for="address" class="block text-sm font-medium text-gray-700">Adresse</label>
+      <textarea id="address" formControlName="address" rows="3"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Adresse complète du client"></textarea>
+    </div>
+  
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
+      <button type="button" (click)="onCancel()"
+              class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              [disabled]="isSubmitting">
+        Annuler
+      </button>
+      <button type="submit"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting">{{ submitButtonText }}</span>
+        <span *ngIf="isSubmitting" class="flex items-center">
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ submitButtonText }}
+        </span>
+      </button>
+    </div>
+  
+    <!-- Error Message -->
+    <div *ngIf="error" class="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+      <i class="fas fa-exclamation-circle mr-2"></i>
+      {{ error }}
+    </div>
+  </form>

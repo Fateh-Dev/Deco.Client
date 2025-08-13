@@ -31,6 +31,12 @@ export class ArticleListComponent implements OnInit {
   isSortDescending = false;
   showFilters = false; // Controls visibility of category filters
   editingArticle: Article | null = null;
+  
+  // Delete modal state
+  showDeleteModal = false;
+  articleToDelete: Article | null = null;
+  isDeleting = false;
+  
   private allArticles: Article[] = [];
 
   // Category navigation properties
@@ -280,6 +286,44 @@ export class ArticleListComponent implements OnInit {
         }
       });
     }
+  }
+
+  openDeleteModal(article: Article): void {
+    this.articleToDelete = article;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.articleToDelete = null;
+    this.isDeleting = false;
+  }
+
+  confirmDelete(): void {
+    if (!this.articleToDelete?.id) {
+      return;
+    }
+
+    this.isDeleting = true;
+    const articleId = this.articleToDelete.id;
+
+    this.articleService.deleteArticle(articleId).subscribe({
+      next: () => {
+        this.allArticles = this.allArticles.filter(article => article.id !== articleId);
+        this.filterArticles();
+        this.closeDeleteModal();
+        // You could add a success toast/message here
+      },
+      error: (error) => {
+        console.error('Error deleting article:', error);
+        // You could show an error message here
+        this.isDeleting = false;
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.closeDeleteModal();
   }
 
   /**
