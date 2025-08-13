@@ -7,11 +7,12 @@ import { ReservationService } from '../../services/reservation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/user';
+import { CreateReservationComponent } from './create-reservation/create-reservation.component';
 
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, CreateReservationComponent],
   templateUrl: './reservations.component.html',
   styleUrls: ['./reservations.component.scss']
 })
@@ -25,6 +26,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   itemsPerPage: number = 10;
   totalItems = 0;
   error: string | null = null;
+  showCreateModal = false;
 
   private destroy$ = new Subject<void>();
 
@@ -37,8 +39,15 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     this.loadReservations();
   }
 
+  onReservationCreated(newReservation: Reservation): void {
+    // Add the new reservation to the beginning of the list
+    this.reservations = [newReservation, ...this.reservations];
+    this.filteredReservations = [newReservation, ...this.filteredReservations];
+    this.showCreateModal = false;
+    this.totalItems++;
+  }
+
   ngOnDestroy(): void {
-    // Clean up all subscriptions when the component is destroyed
     this.destroy$.next();
     this.destroy$.complete();
   }
