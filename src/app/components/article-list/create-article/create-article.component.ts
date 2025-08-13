@@ -28,9 +28,17 @@ export class CreateArticleComponent {
         imageUrl: article.imageUrl || '',
         isActive: article.isActive !== undefined ? article.isActive : true
       };
+      
+      // Set preview URL to show existing image
       if (article.imageUrl) {
-        this.previewUrl = article.imageUrl;
+        this.previewUrl = null; // Clear any previous preview
+        // Don't set previewUrl to existing image URL to avoid confusion
+      } else {
+        this.previewUrl = null;
       }
+      
+      // Clear any selected file when editing
+      this.selectedFile = null;
     } else {
       this.isEditMode = false;
       this.resetForm();

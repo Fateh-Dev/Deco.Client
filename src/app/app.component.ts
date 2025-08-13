@@ -20,7 +20,8 @@ export class AppComponent {
     { label: 'Accueil', route: '/home' },
     { label: 'Articles', route: '/articles' },
     { label: 'Réservations', route: '/reservations' },
-    { label: 'Clients', route: '/clients' }
+    { label: 'Clients', route: '/clients' },
+    { label: 'Administration', route: '/administration' }
   ];
 
   onCreateReservation(): void {

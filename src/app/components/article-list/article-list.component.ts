@@ -33,6 +33,41 @@ export class ArticleListComponent implements OnInit {
   editingArticle: Article | null = null;
   private allArticles: Article[] = [];
 
+  // Category navigation properties
+  scrollOffset = 0;
+  canScrollLeft = false;
+  canScrollRight = true;
+  currentScrollPage = 0;
+  scrollDots: number[] = [];
+  private readonly itemsPerPage = 3;
+  private readonly scrollAmount = 300;
+
+  @ViewChild('categoriesContainer', { static: false }) categoriesContainer!: ElementRef;
+
+  constructor(
+    private articleService: ArticleService,
+    private categoryService: CategoryService
+  ) { }
+
+  ngOnInit(): void {
+    this.loadCategories(); // Load categories first
+    this.loadArticles();
+  }
+
+  ngAfterViewInit() {
+    // Initialize scroll state
+    setTimeout(() => {
+      this.updateScrollState();
+    }, 100);
+  }
+
+  ngOnChanges() {
+    // Update scroll state when categories change
+    if (this.categories?.length) {
+      this.updateScrollState();
+    }
+  }
+
   getUniqueCategories(articles: Article[]): (Category | { id: undefined, name: string })[] {
     const categoryMap = new Map<number | undefined, Category | { id: undefined, name: string }>();
 
@@ -59,67 +94,18 @@ export class ArticleListComponent implements OnInit {
     });
   }
 
-  constructor(
-    private articleService: ArticleService,
-    private categoryService: CategoryService
-  ) { }
-
-  ngOnInit(): void {
-    this.loadArticles();
-    this.loadCategories();
-  }
-
   toggleSortOrder(): void {
     this.isSortDescending = !this.isSortDescending;
+    console.log('Toggle sort order to:', this.isSortDescending ? 'Z-A' : 'A-Z');
     this.filterArticles();
   }
 
-  private sortArticles(articles: Article[]): Article[] {
-    return [...articles].sort((a, b) => {
-      // First sort by category name
-      const categoryCompare = (a.category?.name || '').localeCompare(b.category?.name || '');
-      if (categoryCompare !== 0) {
-        return this.isSortDescending ? -categoryCompare : categoryCompare;
-      }
-      // Then by article name
-      return this.isSortDescending
-        ? b.name.localeCompare(a.name)
-        : a.name.localeCompare(b.name);
-    });
-  }
-
-  private groupArticlesByCategory(articles: Article[]): Article[] {
-    const grouped: Article[] = [];
-    const categories = new Map<number, Article[]>();
-
-    // Group articles by category
-    articles.forEach(article => {
-      const categoryId = article.categoryId || 0;
-      if (!categories.has(categoryId)) {
-        categories.set(categoryId, []);
-      }
-      categories.get(categoryId)?.push(article);
-    });
-
-    // Sort categories and their articles
-    Array.from(categories.entries())
-      .sort(([idA], [idB]) => {
-        const categoryA = this.categories.find(c => c.id === idA)?.name || '';
-        const categoryB = this.categories.find(c => c.id === idB)?.name || '';
-        return this.isSortDescending
-          ? categoryB.localeCompare(categoryA)
-          : categoryA.localeCompare(categoryB);
-      })
-      .forEach(([_, categoryArticles]) => {
-        // Sort articles within each category
-        const sortedArticles = this.sortArticles(categoryArticles);
-        grouped.push(...sortedArticles);
-      });
-
-    return grouped;
-  }
-
   private filterArticles(): void {
+    console.log('=== Starting filterArticles ===');
+    console.log('All articles:', this.allArticles.length);
+    console.log('Categories loaded:', this.categories.length);
+    console.log('Sort descending:', this.isSortDescending);
+    
     let result = [...this.allArticles];
 
     // Apply search filter
@@ -129,23 +115,74 @@ export class ArticleListComponent implements OnInit {
         article.name.toLowerCase().includes(searchLower) ||
         (article.description && article.description.toLowerCase().includes(searchLower))
       );
+      console.log('After search filter:', result.length);
     }
 
     // Apply category filter
     if (this.selectedCategoryId !== null) {
       result = result.filter(article => article.categoryId === this.selectedCategoryId);
+      console.log('After category filter:', result.length);
     }
 
-    // Sort and group articles
-    this.filteredArticles = this.groupArticlesByCategory(result);
+    // Sort articles by category name first, then by article name
+    this.filteredArticles = this.sortArticlesByCategory(result);
+    console.log('Final sorted articles:', this.filteredArticles.length);
+    console.log('=== End filterArticles ===');
+  }
+
+  private sortArticlesByCategory(articles: Article[]): Article[] {
+    // 1️⃣ Group articles by category name
+    const grouped = articles.reduce((acc, article) => {
+      const categoryName = this.getCategoryName(article.categoryId);
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(article);
+      return acc;
+    }, {} as Record<string, Article[]>);
+  
+    // 2️⃣ Sort category names alphabetically (A-Z or Z-A)
+    const sortedCategoryNames = Object.keys(grouped).sort((a, b) =>
+      this.isSortDescending
+        ? b.localeCompare(a)
+        : a.localeCompare(b)
+    );
+  
+    // 3️⃣ Build the sorted article list
+    const sortedArticles: Article[] = [];
+    for (const categoryName of sortedCategoryNames) {
+      const articlesInCategory = grouped[categoryName];
+  
+      // Sort articles inside the same category
+      articlesInCategory.sort((a, b) =>
+        this.isSortDescending
+          ? b.name.localeCompare(a.name)
+          : a.name.localeCompare(b.name)
+      );
+  
+      sortedArticles.push(...articlesInCategory);
+    }
+  
+    return sortedArticles;
+  }
+  
+  
+  private getCategoryName(categoryId: number | null | undefined): string {
+    if (!categoryId) return ''; // Uncategorized
+    const category = this.categories.find(c => c.id === categoryId);
+    return category?.name || '';
   }
 
   loadArticles(): void {
     this.loading = true;
     this.articleService.getArticles().subscribe({
       next: (articles) => {
+        console.log('Articles loaded:', articles);
         this.allArticles = articles;
-        this.filterArticles();
+        // Only filter if categories are already loaded
+        if (this.categories.length > 0) {
+          this.filterArticles();
+        }
         this.loading = false;
       },
       error: (error) => {
@@ -158,7 +195,12 @@ export class ArticleListComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getCategories().subscribe({
       next: (categories) => {
+        console.log('Categories loaded:', categories);
         this.categories = categories;
+        // Re-filter articles after categories are loaded
+        if (this.allArticles.length > 0) {
+          this.filterArticles();
+        }
       },
       error: (error) => {
         console.error('Error loading categories:', error);
@@ -166,19 +208,9 @@ export class ArticleListComponent implements OnInit {
     });
   }
 
-  // selectCategory(categoryId: number | null): void {
-  //   this.selectedCategoryId = categoryId;
-  //   this.filterArticles();
-  // }
-
   onSearch(): void {
     this.filterArticles();
   }
-
-  // clearSearch(): void {
-  //   this.searchTerm = '';
-  //   this.filterArticles();
-  // }
 
   openCreateModal(article?: Article): void {
     this.editingArticle = article || null;
@@ -247,31 +279,6 @@ export class ArticleListComponent implements OnInit {
           alert('Erreur lors de la suppression de l\'article');
         }
       });
-    }
-  }
-
-  // Category navigation properties
-  scrollOffset = 0;
-  canScrollLeft = false;
-  canScrollRight = true;
-  currentScrollPage = 0;
-  scrollDots: number[] = [];
-  private readonly itemsPerPage = 3;
-  private readonly scrollAmount = 300;
-
-  @ViewChild('categoriesContainer', { static: false }) categoriesContainer!: ElementRef;
-
-  ngAfterViewInit() {
-    // Initialize scroll state
-    setTimeout(() => {
-      this.updateScrollState();
-    }, 100);
-  }
-
-  ngOnChanges() {
-    // Update scroll state when categories change
-    if (this.categories?.length) {
-      this.updateScrollState();
     }
   }
 
