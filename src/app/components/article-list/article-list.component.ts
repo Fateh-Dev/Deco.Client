@@ -12,9 +12,9 @@ import { CreateArticleComponent } from './create-article/create-article.componen
   selector: 'app-article-list',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterModule, 
-    FormsModule, 
+    CommonModule,
+    RouterModule,
+    FormsModule,
     CreateArticleComponent
   ],
   templateUrl: './article-list.component.html',
@@ -30,11 +30,12 @@ export class ArticleListComponent implements OnInit {
   showCreateModal = false;
   isSortDescending = false;
   showFilters = false; // Controls visibility of category filters
+  editingArticle: Article | null = null;
   private allArticles: Article[] = [];
 
   getUniqueCategories(articles: Article[]): (Category | { id: undefined, name: string })[] {
     const categoryMap = new Map<number | undefined, Category | { id: undefined, name: string }>();
-    
+
     // Add all categories from articles
     articles.forEach(article => {
       if (article.category) {
@@ -61,7 +62,7 @@ export class ArticleListComponent implements OnInit {
   constructor(
     private articleService: ArticleService,
     private categoryService: CategoryService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadArticles();
@@ -81,7 +82,7 @@ export class ArticleListComponent implements OnInit {
         return this.isSortDescending ? -categoryCompare : categoryCompare;
       }
       // Then by article name
-      return this.isSortDescending 
+      return this.isSortDescending
         ? b.name.localeCompare(a.name)
         : a.name.localeCompare(b.name);
     });
@@ -105,7 +106,7 @@ export class ArticleListComponent implements OnInit {
       .sort(([idA], [idB]) => {
         const categoryA = this.categories.find(c => c.id === idA)?.name || '';
         const categoryB = this.categories.find(c => c.id === idB)?.name || '';
-        return this.isSortDescending 
+        return this.isSortDescending
           ? categoryB.localeCompare(categoryA)
           : categoryA.localeCompare(categoryB);
       })
@@ -124,8 +125,8 @@ export class ArticleListComponent implements OnInit {
     // Apply search filter
     if (this.searchTerm) {
       const searchLower = this.searchTerm.toLowerCase();
-      result = result.filter(article => 
-        article.name.toLowerCase().includes(searchLower) || 
+      result = result.filter(article =>
+        article.name.toLowerCase().includes(searchLower) ||
         (article.description && article.description.toLowerCase().includes(searchLower))
       );
     }
@@ -179,27 +180,59 @@ export class ArticleListComponent implements OnInit {
   //   this.filterArticles();
   // }
 
-  openCreateModal(): void {
+  openCreateModal(article?: Article): void {
+    this.editingArticle = article || null;
     this.showCreateModal = true;
+  }
+
+  editArticle(article: Article): void {
+    this.openCreateModal(article);
   }
 
   closeCreateModal(): void {
     this.showCreateModal = false;
+    this.editingArticle = null;
   }
 
   onArticleCreated(article: Article): void {
-    this.articleService.createArticle(article).subscribe({
-      next: (createdArticle) => {
-        // Add the new article to the list
-        this.loadArticles();
-        this.filterArticles();
-        this.closeCreateModal();
-      },
-      error: (error) => {
-        console.error('Error creating article:', error);
-        alert('Erreur lors de la création de l\'article');
-      }
-    });
+    console.log('Article to save:', article);
+    console.log('Currently editing article:', this.editingArticle);
+    
+    // Check if we're in edit mode by looking at the article ID
+    const isEditMode = article.id !== undefined && article.id !== null && article.id > 0;
+    
+    console.log('Is edit mode:', isEditMode);
+    console.log('Article ID:', article.id);
+    
+    if (isEditMode) {
+      console.log('Updating existing article with ID:', article.id);
+      this.articleService.updateArticle(article.id!, article).subscribe({
+        next: (updatedArticle) => {
+          console.log('Article updated successfully:', updatedArticle);
+          // Refresh the articles list to get the latest data
+          this.loadArticles();
+          this.closeCreateModal();
+        },
+        error: (error) => {
+          console.error('Error updating article:', error);
+          alert('Erreur lors de la mise à jour de l\'article. Veuillez réessayer.');
+        }
+      });
+    } else {
+      console.log('Creating new article');
+      this.articleService.createArticle(article).subscribe({
+        next: (createdArticle) => {
+          console.log('Article created successfully:', createdArticle);
+          // Refresh the articles list to include the new article
+          this.loadArticles();
+          this.closeCreateModal();
+        },
+        error: (error) => {
+          console.error('Error creating article:', error);
+          alert('Erreur lors de la création de l\'article. Veuillez réessayer.');
+        }
+      });
+    }
   }
 
   deleteArticle(id: number): void {
@@ -251,7 +284,7 @@ export class ArticleListComponent implements OnInit {
 
     const containerWidth = container.clientWidth;
     const totalWidth = container.scrollWidth;
-    
+
     if (direction === 'left') {
       this.scrollOffset = Math.min(0, this.scrollOffset + this.scrollAmount);
       this.currentScrollPage = Math.max(0, this.currentScrollPage - 1);
@@ -260,7 +293,7 @@ export class ArticleListComponent implements OnInit {
       this.scrollOffset = Math.max(maxScroll, this.scrollOffset - this.scrollAmount);
       this.currentScrollPage = Math.min(this.scrollDots.length - 1, this.currentScrollPage + 1);
     }
-    
+
     this.updateScrollState();
   }
 
@@ -269,15 +302,15 @@ export class ArticleListComponent implements OnInit {
    */
   private updateScrollState(): void {
     if (!this.categoriesContainer?.nativeElement) return;
-    
+
     const container = this.categoriesContainer.nativeElement;
     const containerWidth = container.clientWidth;
     const totalWidth = container.scrollWidth;
-    
+
     // Update scroll buttons
     this.canScrollLeft = this.scrollOffset < 0;
     this.canScrollRight = Math.abs(this.scrollOffset) < (totalWidth - containerWidth - 10);
-    
+
     // Calculate scroll dots
     const totalPages = Math.ceil((this.categories.length + 1) / this.itemsPerPage);
     this.scrollDots = Array(Math.max(1, totalPages)).fill(0).map((_, i) => i);

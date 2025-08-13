@@ -151,7 +151,7 @@
           </td>
           <td class="px-4 py-4 border-b border-gray-100">{{ reservation?.startDate | date:'dd/MM/yyyy' }}</td>
           <td class="px-4 py-4 border-b border-gray-100">{{ reservation?.endDate | date:'dd/MM/yyyy' }}</td>
-          <td class="px-4 py-4 border-b border-gray-100 font-mono font-medium text-slate-700">{{ reservation?.totalPrice | currency:'MAD ':'symbol':'1.2-2' }}</td>
+          <td class="px-4 py-4 border-b border-gray-100 font-mono font-medium text-slate-700">{{ reservation?.totalPrice | currency:'DZD ':'symbol':'1.2-2' }}</td>
           <td class="px-4 py-4 border-b border-gray-100">
             <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium capitalize text-center min-w-20" 
                   [ngClass]="getStatusClass(reservation.status)">
