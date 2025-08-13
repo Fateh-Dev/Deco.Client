@@ -267,7 +267,7 @@ export class HomePageComponent implements OnInit {
 📦 Articles: ${this.totalArticles} (${this.totalStock} unités)
 📅 Réservations: ${this.totalReservations} (${this.getActiveReservations()} actives)
 👥 Clients: ${this.totalClients} (${this.getNewClientsThisMonth()} nouveaux ce mois)
-💰 Revenus ce mois: ${this.getMonthlyRevenue()}€ (${this.getRevenueGrowth()}%)`);
+💰 Revenus ce mois: ${this.getMonthlyRevenue()} DZD (${this.getRevenueGrowth()}%)`);
   }
 
   // Refresh data
