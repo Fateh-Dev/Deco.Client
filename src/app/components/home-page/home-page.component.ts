@@ -223,8 +223,8 @@ export class HomePageComponent implements OnInit {
     this.router.navigate(['/reservations']);
   }
 
-  navigateToUsers(): void {
-    this.router.navigate(['/users']);
+  navigateToClients(): void {
+    this.router.navigate(['/clients']);
   }
 
   navigateToNewReservation(): void {
