@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, throwError } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, catchError, map, of, throwError, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Client } from '../models/client';
 
 @Injectable({
@@ -12,8 +12,13 @@ export class ClientService {
 
   constructor(private http: HttpClient) {}
 
-  getClients(): Observable<Client[]> {
-    return this.http.get<Client[]>(this.apiUrl).pipe(
+  getClients(searchTerm?: string): Observable<Client[]> {
+    let params = new HttpParams();
+    if (searchTerm && searchTerm.trim()) {
+      params = params.set('search', searchTerm.trim());
+    }
+    
+    return this.http.get<Client[]>(this.apiUrl, { params }).pipe(
       catchError(this.handleError<Client[]>('getClients', []))
     );
   }
@@ -45,14 +50,35 @@ export class ClientService {
     );
   }
 
+  // Alternative search method using dedicated search endpoint
   searchClients(term: string): Observable<Client[]> {
-    if (!term.trim()) {
+    if (!term || !term.trim()) {
       return this.getClients();
     }
-    return this.http.get<Client[]>(`${this.apiUrl}?name=${term}`).pipe(
+    
+    const url = `${this.apiUrl}/search/${encodeURIComponent(term.trim())}`;
+    return this.http.get<Client[]>(url).pipe(
       map(clients => clients || []),
       catchError(this.handleError<Client[]>('searchClients', []))
     );
+  }
+
+  // Client-side filtering (fallback option)
+  filterClientsLocally(clients: Client[], searchTerm: string): Client[] {
+    if (!searchTerm || !searchTerm.trim()) {
+      return clients;
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    return clients.filter(client => {
+      return (
+        client.name?.toLowerCase().includes(term) ||
+        client.phone?.toLowerCase().includes(term) ||
+        client.email?.toLowerCase().includes(term) ||
+        client.companyName?.toLowerCase().includes(term) ||
+        client.address?.toLowerCase().includes(term)
+      );
+    });
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

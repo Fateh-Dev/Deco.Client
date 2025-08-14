@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClientService } from '../../services/client.service';
 import { Client } from '../../models/client';
 import { CreateClientComponent } from './create-client/create-client.component';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-client-list',
@@ -12,13 +13,14 @@ import { CreateClientComponent } from './create-client/create-client.component';
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.scss']
 })
-export class ClientListComponent implements OnInit {
+export class ClientListComponent implements OnInit, OnDestroy {
   clients: Client[] = [];
   filteredClients: Client[] = [];
   searchTerm: string = '';
   isLoading: boolean = false;
   error: string | null = null;
   successMessage: string | null = null;
+  isSearching: boolean = false;
   
   // Modal states
   showCreateModal: boolean = false;
@@ -31,10 +33,52 @@ export class ClientListComponent implements OnInit {
   // Loading states
   isDeleting: boolean = false;
 
+  // Search subject for debouncing
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   constructor(private clientService: ClientService) {}
 
   ngOnInit(): void {
     this.loadClients();
+    this.setupSearch();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupSearch(): void {
+    // Setup debounced search
+    this.searchSubject.pipe(
+      debounceTime(300), // Wait 300ms after user stops typing
+      distinctUntilChanged(), // Only trigger if search term changed
+      takeUntil(this.destroy$),
+      switchMap(searchTerm => {
+        if (!searchTerm.trim()) {
+          // If search term is empty, return all clients
+          return this.clientService.getClients();
+        }
+        this.isSearching = true;
+        // Use server-side search
+        return this.clientService.getClients(searchTerm);
+      })
+    ).subscribe({
+      next: (clients) => {
+        this.filteredClients = clients;
+        this.isSearching = false;
+        this.error = null;
+      },
+      error: (err) => {
+        console.error('Error during search:', err);
+        this.error = err.message || 'Erreur lors de la recherche. Veuillez réessayer.';
+        this.isSearching = false;
+        
+        // Fallback to client-side filtering if server search fails
+        this.filteredClients = this.clientService.filterClientsLocally(this.clients, this.searchTerm);
+      }
+    });
   }
 
   loadClients(): void {
@@ -56,26 +100,23 @@ export class ClientListComponent implements OnInit {
   }
 
   onSearch(): void {
+    // Trigger search through the subject for debouncing
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.searchSubject.next('');
+  }
+
+  // Alternative method using client-side filtering (immediate response)
+  onSearchImmediate(): void {
     if (!this.searchTerm.trim()) {
       this.filteredClients = [...this.clients];
       return;
     }
 
-    this.clientService.searchClients(this.searchTerm).subscribe({
-      next: (filtered) => {
-        this.filteredClients = filtered;
-      },
-      error: (err) => {
-        console.error('Error searching clients:', err);
-        this.error = err.message || 'Error performing search. Please try again.';
-        this.filteredClients = [];
-      }
-    });
-  }
-
-  clearSearch(): void {
-    this.searchTerm = '';
-    this.filteredClients = [...this.clients];
+    this.filteredClients = this.clientService.filterClientsLocally(this.clients, this.searchTerm);
   }
 
   // Create Modal methods
