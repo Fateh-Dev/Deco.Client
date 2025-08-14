@@ -33,25 +33,25 @@ export class CreateReservationComponent implements OnInit {
   selectedClientId: number | null = null;
   startDate: Date = new Date();
   endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  
+
   // For form binding
   startDateString: string = this.formatDate(this.startDate);
   endDateString: string = this.formatDate(this.endDate);
-  
+
   // Article selection
   articles: ArticleWithTemp[] = [];
   categories: Category[] = [];
   filteredArticles: ArticleWithTemp[] = [];
   searchTerm: string = '';
   selectedCategoryFilter: number | null = null;
-  
+
   reservationItems: { articleId: number; quantity: number; article?: Article }[] = [];
-  
+
   // State
   loading = false;
   submitting = false;
   error: string | null = null;
-  
+
   // Drawer state
   isDrawerOpen = false;
 
@@ -94,12 +94,12 @@ export class CreateReservationComponent implements OnInit {
 
   onQuantityInput(article: ArticleWithTemp, event: any): void {
     const value = parseInt(event.target.value);
-    
+
     // Allow empty input for better UX while typing
     if (event.target.value === '' || isNaN(value)) {
       return;
     }
-    
+
     // Real-time validation
     if (value < 1) {
       article.tempQuantity = 1;
@@ -117,7 +117,7 @@ export class CreateReservationComponent implements OnInit {
     } else if (article.tempQuantity > article.quantityTotal) {
       article.tempQuantity = article.quantityTotal;
     }
-    
+
     // Ensure it's an integer
     article.tempQuantity = Math.floor(article.tempQuantity);
   }
@@ -125,12 +125,12 @@ export class CreateReservationComponent implements OnInit {
   private loadData(): void {
     this.loading = true;
     this.error = null;
-    
+
     // Load clients, articles, and categories in parallel
     const loadClients$ = this.clientService.getClients();
     const loadArticles$ = this.articleService.getArticles();
     const loadCategories$ = this.categoryService.getCategories();
-    
+
     forkJoin([loadClients$, loadArticles$, loadCategories$]).subscribe({
       next: ([clients, articles, categories]: [Client[], Article[], Category[]]) => {
         this.clients = clients;
@@ -168,7 +168,7 @@ export class CreateReservationComponent implements OnInit {
     if (this.startDateString && this.endDateString) {
       const start = this.parseDate(this.startDateString);
       const end = this.parseDate(this.endDateString);
-      
+
       if (end < start) {
         this.endDateString = this.startDateString;
       }
@@ -198,7 +198,7 @@ export class CreateReservationComponent implements OnInit {
     // Filter by search term
     if (this.searchTerm.trim()) {
       const searchLower = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(article => 
+      filtered = filtered.filter(article =>
         article.name.toLowerCase().includes(searchLower) ||
         (article.description && article.description.toLowerCase().includes(searchLower))
       );
@@ -238,7 +238,7 @@ export class CreateReservationComponent implements OnInit {
 
     // Reset tempQuantity
     article.tempQuantity = 1;
-    
+
     // Auto-open drawer when item is added
     if (!this.isDrawerOpen) {
       this.openDrawer();
@@ -259,7 +259,7 @@ export class CreateReservationComponent implements OnInit {
     // Parse dates from string inputs
     const startDate = this.parseDate(this.startDateString);
     const endDate = this.parseDate(this.endDateString);
-    
+
     // Validate required fields
     if (!this.selectedClientId || !startDate || !endDate) {
       this.error = 'Veuillez remplir tous les champs obligatoires';
@@ -270,11 +270,11 @@ export class CreateReservationComponent implements OnInit {
       this.error = 'Veuillez sélectionner au moins un article';
       return;
     }
-    
+
     // Calculate total price based on selected articles and duration
     const days = this.calculateDays();
     const totalPrice = this.calculateTotalPrice() * days;
-    
+
     // Create reservation items
     const reservationItems = this.reservationItems.map(item => ({
       articleId: item.articleId,
@@ -284,7 +284,7 @@ export class CreateReservationComponent implements OnInit {
       reservationId: 0, // Will be set by the server
       article: undefined // Don't send the full article to the server
     } as ReservationItem));
-    
+
     // Create a new reservation object with proper types
     const newReservation: Reservation = {
       clientId: this.selectedClientId,
@@ -296,11 +296,11 @@ export class CreateReservationComponent implements OnInit {
       isActive: true,
       reservationItems: reservationItems
     };
-    
+
     // Submit the reservation
     this.submitting = true;
     this.error = null;
-    
+
     this.reservationService.createReservation(newReservation).subscribe({
       next: (createdReservation) => {
         this.submitting = false;
@@ -315,6 +315,17 @@ export class CreateReservationComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    // Clear all selected items
+    this.reservationItems = [];
+  
+    // Optionally clear other form fields
+    this.selectedClientId = null;
+    this.startDateString = '';
+    this.endDateString = '';
+    this.error = null;
+  
+    // Also close the drawer if it's open
+    this.isDrawerOpen = false;
   }
+  
 }

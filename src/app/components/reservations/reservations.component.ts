@@ -6,13 +6,11 @@ import { Subject, takeUntil } from 'rxjs';
 import { ReservationService } from '../../services/reservation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation';
 import { ClientService } from '../../services/client.service';
-import { Client } from '../../models/client';
-import { CreateReservationComponent } from './create-reservation/create-reservation.component';
-
+import { Client } from '../../models/client'; 
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, CreateReservationComponent],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './reservations.component.html',
   styleUrls: ['./reservations.component.scss']
 })
