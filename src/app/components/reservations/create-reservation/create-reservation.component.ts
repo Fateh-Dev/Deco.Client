@@ -5,10 +5,17 @@ import { forkJoin } from 'rxjs';
 import { Reservation, ReservationStatus } from '../../../models/reservation';
 import { Article } from '../../../models/article';
 import { Client } from '../../../models/client';
+import { Category } from '../../../models/category';
 import { ArticleService } from '../../../services/article.service';
 import { ClientService } from '../../../services/client.service';
+import { CategoryService } from '../../../services/category.service';
 import { ReservationService } from '../../../services/reservation.service';
 import { ReservationItem } from '../../../models/reservation-item';
+
+// Extended Article interface for UI purposes
+interface ArticleWithTemp extends Article {
+  tempQuantity: number;
+}
 
 @Component({
   selector: 'app-create-reservation',
@@ -32,19 +39,26 @@ export class CreateReservationComponent implements OnInit {
   endDateString: string = this.formatDate(this.endDate);
   
   // Article selection
-  articles: Article[] = [];
-  selectedArticleId: number | null = null;
-  quantity = 1;
+  articles: ArticleWithTemp[] = [];
+  categories: Category[] = [];
+  filteredArticles: ArticleWithTemp[] = [];
+  searchTerm: string = '';
+  selectedCategoryFilter: number | null = null;
+  
   reservationItems: { articleId: number; quantity: number; article?: Article }[] = [];
   
   // State
   loading = false;
   submitting = false;
   error: string | null = null;
+  
+  // Drawer state
+  isDrawerOpen = false;
 
   constructor(
     private articleService: ArticleService,
     private clientService: ClientService,
+    private categoryService: CategoryService,
     private reservationService: ReservationService
   ) { }
 
@@ -52,19 +66,38 @@ export class CreateReservationComponent implements OnInit {
     this.loadData();
   }
 
+  // Drawer methods
+  toggleDrawer(): void {
+    this.isDrawerOpen = !this.isDrawerOpen;
+  }
+
+  openDrawer(): void {
+    this.isDrawerOpen = true;
+  }
+
+  closeDrawer(): void {
+    this.isDrawerOpen = false;
+  }
+
   private loadData(): void {
     this.loading = true;
     this.error = null;
     
-    // Load clients and articles in parallel
+    // Load clients, articles, and categories in parallel
     const loadClients$ = this.clientService.getClients();
     const loadArticles$ = this.articleService.getArticles();
+    const loadCategories$ = this.categoryService.getCategories();
     
-    // Use forkJoin to wait for both requests to complete
-    forkJoin([loadClients$, loadArticles$]).subscribe({
-      next: ([clients, articles]: [Client[], Article[]]) => {
+    forkJoin([loadClients$, loadArticles$, loadCategories$]).subscribe({
+      next: ([clients, articles, categories]: [Client[], Article[], Category[]]) => {
         this.clients = clients;
-        this.articles = articles;
+        // Add tempQuantity property to articles for UI binding
+        this.articles = articles.map(article => ({
+          ...article,
+          tempQuantity: 1
+        }));
+        this.categories = categories;
+        this.filteredArticles = [...this.articles];
         this.loading = false;
       },
       error: (err: any) => {
@@ -79,50 +112,12 @@ export class CreateReservationComponent implements OnInit {
     return date.toISOString().split('T')[0];
   }
 
-  // Add this method to fix the template error
   getTodayFormatted(): string {
     return this.formatDate(new Date());
   }
 
   private parseDate(dateString: string): Date {
     return new Date(dateString);
-  }
-
-  addArticle(): void {
-    if (!this.selectedArticleId || this.quantity < 1) {
-      return;
-    }
-
-    const article = this.articles.find(a => a.id === this.selectedArticleId);
-    if (!article) return;
-
-    // Check if article already added
-    const existingItem = this.reservationItems.find(item => item.articleId === this.selectedArticleId);
-    if (existingItem) {
-      existingItem.quantity += this.quantity;
-    } else {
-      this.reservationItems.push({
-        articleId: this.selectedArticleId!,
-        quantity: this.quantity,
-        article: article
-      });
-    }
-
-    // Reset form
-    this.selectedArticleId = null;
-    this.quantity = 1;
-  }
-
-  removeItem(index: number): void {
-    this.reservationItems.splice(index, 1);
-  }
-
-  calculateDays(): number {
-    if (!this.startDateString || !this.endDateString) return 0;
-    const start = this.parseDate(this.startDateString);
-    const end = this.parseDate(this.endDateString);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
   }
 
   onDateChange(): void {
@@ -135,6 +130,80 @@ export class CreateReservationComponent implements OnInit {
         this.endDateString = this.startDateString;
       }
     }
+  }
+
+  calculateDays(): number {
+    if (!this.startDateString || !this.endDateString) return 0;
+    const start = this.parseDate(this.startDateString);
+    const end = this.parseDate(this.endDateString);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+  }
+
+  // Search functionality
+  onSearch(): void {
+    this.filterArticles();
+  }
+
+  onCategoryFilter(): void {
+    this.filterArticles();
+  }
+
+  private filterArticles(): void {
+    let filtered = [...this.articles];
+
+    // Filter by search term
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(article => 
+        article.name.toLowerCase().includes(searchLower) ||
+        (article.description && article.description.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Filter by category
+    if (this.selectedCategoryFilter !== null) {
+      filtered = filtered.filter(article => article.categoryId === this.selectedCategoryFilter);
+    }
+
+    // Only show active articles with stock
+    filtered = filtered.filter(article => article.isActive && article.quantityTotal > 0);
+
+    this.filteredArticles = filtered;
+  }
+
+  getFilteredArticles(): ArticleWithTemp[] {
+    return this.filteredArticles;
+  }
+
+  addArticleToReservation(article: ArticleWithTemp): void {
+    if (!article.tempQuantity || article.tempQuantity < 1) {
+      return;
+    }
+
+    // Check if article already added
+    const existingItem = this.reservationItems.find(item => item.articleId === article.id);
+    if (existingItem) {
+      existingItem.quantity += article.tempQuantity;
+    } else {
+      this.reservationItems.push({
+        articleId: article.id!,
+        quantity: article.tempQuantity,
+        article: article
+      });
+    }
+
+    // Reset tempQuantity
+    article.tempQuantity = 1;
+    
+    // Auto-open drawer when item is added
+    if (!this.isDrawerOpen) {
+      this.openDrawer();
+    }
+  }
+
+  removeItem(index: number): void {
+    this.reservationItems.splice(index, 1);
   }
 
   calculateTotalPrice(): number {

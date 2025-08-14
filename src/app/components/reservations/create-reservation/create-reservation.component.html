@@ -1,176 +1,392 @@
-<form (ngSubmit)="onSubmit()" class="space-y-6">
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-20 w-full">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">Créer une Réservation</h1>
+          <p class="text-sm text-gray-500">Interface de location pour décor, chaises, tables, éclairage, etc.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <!-- Quick Cart Summary -->
+          <div class="flex items-center space-x-4 mr-4 px-3 py-2 bg-gray-50 rounded-lg">
+            <span class="text-sm text-gray-600">
+              {{ reservationItems.length }} article{{ reservationItems.length !== 1 ? 's' : '' }} sélectionné{{ reservationItems.length !== 1 ? 's' : '' }}
+            </span>
+            <span *ngIf="reservationItems.length > 0" class="text-sm font-medium text-blue-600">
+              Total: {{ calculateTotalPrice() * calculateDays() | currency:'DZD ':'symbol':'1.0-0' }}
+            </span>
+          </div>
+          
+          <!-- Cart Summary Button -->
+          <button 
+            type="button"
+            (click)="toggleDrawer()"
+            class="relative px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+          >
+            <i class="fas fa-shopping-cart mr-2"></i>
+            Panier
+            <span *ngIf="reservationItems.length > 0" 
+                  class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {{ reservationItems.length }}
+            </span>
+          </button>
+          <button 
+            type="button" 
+            (click)="onCancel()"
+            [disabled]="submitting"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            (click)="onSubmit()"
+            [disabled]="reservationItems.length === 0 || submitting || !selectedClientId"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            <span *ngIf="!submitting">Sauvegarder la Réservation</span>
+            <span *ngIf="submitting" class="flex items-center">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Création...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <!-- Loading State -->
   <div *ngIf="loading" class="flex justify-center py-8">
     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
   </div>
 
-  <!-- Form Content -->
-  <div *ngIf="!loading" class="space-y-6">
-    <!-- Client Selection -->
-    <div class="space-y-2">
-      <label for="client" class="block text-sm font-medium text-gray-700">Client <span class="text-red-500">*</span></label>
-      <select
-        id="client"
-        name="client"
-        [(ngModel)]="selectedClientId"
-        required
-        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-      >
-        <option [ngValue]="null">Sélectionner un client</option>
-        <option *ngFor="let client of clients" [ngValue]="client.id">
-          {{ client.name }} ({{ client.phone }})
-        </option>
-      </select>
-    </div>
-
-    <!-- Date Range -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="space-y-2">
-        <label for="startDate" class="block text-sm font-medium text-gray-700">Date de début <span class="text-red-500">*</span></label>
-        <input 
-          type="date" 
-          id="startDate" 
-          name="startDate" 
-          [(ngModel)]="startDateString"
-          required
-          [min]="getTodayFormatted()"
-          (change)="onDateChange()"
-          class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-      </div>
+  <!-- Main Layout -->
+  <main class="w-full px-2 sm:px-2 lg:px-4 py-4 flex-1 overflow-hidden min-h-0" *ngIf="!loading">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 h-full">
       
-      <div class="space-y-2">
-        <label for="endDate" class="block text-sm font-medium text-gray-700">Date de fin <span class="text-red-500">*</span></label>
-        <input 
-          type="date" 
-          id="endDate" 
-          name="endDate" 
-          [(ngModel)]="endDateString"
-          required
-          [min]="startDateString || getTodayFormatted()"
-          (change)="onDateChange()"
-          class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-      </div>
+      <!-- LEFT: Client & Event Details -->
+      <aside class="lg:col-span-1">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div class="p-4">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Client</h2>
+            
+            <!-- Client Selection -->
+            <div class="space-y-4">
+              <div>
+                <label for="client" class="block text-sm font-medium text-gray-700 mb-2">
+                  Sélectionner un client <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="client"
+                  [(ngModel)]="selectedClientId"
+                  required
+                  class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option [ngValue]="null">Choisir un client</option>
+                  <option *ngFor="let client of clients" [ngValue]="client.id">
+                    {{ client.name }} ({{ client.phone }})
+                  </option>
+                </select>
+              </div>
+
+              <!-- Event Details -->
+              <div class="pt-4 border-t border-gray-100">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Détails de l'événement</h3>
+                
+                <div class="space-y-3">
+                  <div>
+                    <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">
+                      Date de début <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                      type="date" 
+                      id="startDate" 
+                      [(ngModel)]="startDateString"
+                      required
+                      [min]="getTodayFormatted()"
+                      (change)="onDateChange()"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                  </div>
+                  
+                  <div>
+                    <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">
+                      Date de retour <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                      type="date" 
+                      id="endDate" 
+                      [(ngModel)]="endDateString"
+                      required
+                      [min]="startDateString || getTodayFormatted()"
+                      (change)="onDateChange()"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                  </div>
+
+                  <!-- Duration Display -->
+                  <div class="bg-blue-50 p-3 rounded-lg">
+                    <div class="text-sm text-blue-800">
+                      <strong>Durée:</strong> {{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MIDDLE: Item Selector (Now spans 3 columns) -->
+      <section class="lg:col-span-3 flex flex-col h-full">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col h-full">
+          <div class="p-4 flex-shrink-0">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-medium text-gray-900">Articles</h2>
+              <button 
+                type="button"
+                (click)="toggleDrawer()"
+                class="lg:hidden px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center"
+              >
+                <i class="fas fa-shopping-cart mr-2"></i>
+                Voir Panier ({{ reservationItems.length }})
+              </button>
+            </div>
+            
+            <!-- Search and Filter -->
+            <div class="flex gap-3 mb-4">
+              <div class="flex-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input 
+                  type="text" 
+                  [(ngModel)]="searchTerm"
+                  (input)="onSearch()"
+                  placeholder="🔍 Rechercher un article..."
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+              </div>
+              <select 
+                [(ngModel)]="selectedCategoryFilter"
+                (change)="onCategoryFilter()"
+                class="border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option [ngValue]="null">Toutes catégories</option>
+                <option *ngFor="let category of categories" [ngValue]="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Articles Grid (More space now!) -->
+            <div class="flex-1 overflow-hidden">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 h-full overflow-y-auto p-1">
+              <div *ngFor="let article of getFilteredArticles()" 
+                   class="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow">
+                
+                <!-- Article Image -->
+                <div class="aspect-w-4 aspect-h-3 bg-gray-100 relative">
+                  <img 
+                    [src]="article.imageUrl || 'https://placehold.co/400x300?text=Image+non+disponible'"
+                    [alt]="article.name"
+                    class="w-full h-32 object-cover"
+                    onerror="this.src='https://placehold.co/400x300?text=Image+non+disponible'"
+                  >
+                  <div class="absolute top-2 right-2">
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                      {{ article.pricePerDay | currency:'DZD ':'symbol':'1.0-0' }}/jour
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Article Details -->
+                <div class="p-3">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex-1">
+                      <h3 class="font-medium text-gray-900 text-sm">{{ article.name }}</h3>
+                      <p class="text-xs text-gray-500">Stock: {{ article.quantityTotal }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Add to Cart -->
+                  <div class="space-y-2 mt-3">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Quantité</label>
+                      <input 
+                        type="number" 
+                        [(ngModel)]="article.tempQuantity"
+                        min="1" 
+                        [max]="article.quantityTotal"
+                        value="1"
+                        class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                    </div>
+                    <button 
+                      (click)="addArticleToReservation(article)"
+                      [disabled]="!article.tempQuantity || article.tempQuantity < 1 || article.tempQuantity > article.quantityTotal"
+                      class="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+              </div>
+                          </div>
+
+            <!-- Empty State -->
+            <div *ngIf="getFilteredArticles().length === 0" class="flex-1 flex items-center justify-center">
+              <div class="text-center text-gray-500">
+                <i class="fas fa-box-open text-4xl mb-4"></i>
+                <p>Aucun article trouvé</p>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Article Selection -->
-    <div class="space-y-4">
-      <div class="flex items-end gap-4">
-        <div class="flex-1">
-          <label for="article" class="block text-sm font-medium text-gray-700">Article</label>
-          <select
-            id="article"
-            name="article"
-            [(ngModel)]="selectedArticleId"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option [ngValue]="null">Sélectionner un article</option>
-            <option *ngFor="let article of articles" [ngValue]="article.id">
-              {{ article.name }} - {{ article.pricePerDay | currency:' DZD ' }}/jour
-            </option>
-          </select>
-        </div>
-        
-        <div class="w-32">
-          <label for="quantity" class="block text-sm font-medium text-gray-700">Quantité</label>
-          <input
-            type="number"
-            id="quantity"
-            name="quantity"
-            [(ngModel)]="quantity"
-            min="1"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-        </div>
-        
-        <button
-          type="button"
-          (click)="addArticle()"
-          [disabled]="!selectedArticleId || quantity < 1"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Ajouter
-        </button>
-      </div>
-
-      <!-- Selected Articles -->
-      <div *ngIf="reservationItems.length > 0" class="mt-4">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Articles sélectionnés</h3>
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul class="divide-y divide-gray-200">
-            <li *ngFor="let item of reservationItems; let i = index" class="px-4 py-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ item.article?.name }}</p>
-                  <p class="text-sm text-gray-500">
-                    {{ item.quantity }} × {{ item.article?.pricePerDay | currency:' DZD ' }}/jour
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  (click)="removeItem(i)"
-                  class="text-red-600 hover:text-red-900"
-                >
-                  <span class="sr-only">Supprimer</span>
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </li>
-          </ul>
-        </div>
-        
-        <!-- Total -->
-        <div class="mt-4 flex justify-end">
-          <div class="text-right">
-            <p class="text-sm text-gray-500">Prix total estimé pour la période :</p>
-            <p class="text-lg font-semibold text-gray-900">
-              {{ calculateTotalPrice() * (calculateDays() || 1) | currency:' DZD ' }}
-              <span class="text-sm font-normal text-gray-500">
-                ({{ calculateDays() || 1 }} jour{{ calculateDays() !== 1 ? 's' : '' }})
-              </span>
-            </p>
+    <!-- Error Message -->
+    <div *ngIf="error" class="fixed bottom-4 right-4 max-w-md z-50">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-circle text-red-400"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-800">{{ error }}</p>
+          </div>
+          <div class="ml-auto pl-3">
+            <button (click)="error = null" class="text-red-400 hover:text-red-600">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </main>
 
-    <!-- Error Message -->
-    <div *ngIf="error" class="rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <i class="fas fa-exclamation-circle h-5 w-5 text-red-400"></i>
+  <!-- Slide-out Drawer for Reservation Summary -->
+  <div class="fixed inset-0 z-40" *ngIf="isDrawerOpen" (click)="closeDrawer()">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+    
+    <!-- Drawer -->
+    <div class="absolute right-0 top-0 h-full w-96 bg-white shadow-xl transform transition-transform"
+         [class.translate-x-0]="isDrawerOpen"
+         [class.translate-x-full]="!isDrawerOpen"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Drawer Header -->
+      <div class="flex justify-between items-center p-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Résumé de Réservation</h2>
+        <button 
+          (click)="closeDrawer()"
+          class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Drawer Content -->
+      <div class="flex-1 overflow-y-auto p-4 pb-20">
+        <!-- Selected Items -->
+        <div class="space-y-3 mb-4">
+          <div *ngFor="let item of reservationItems; let i = index" 
+               class="grid grid-cols-12 gap-2 items-center text-sm border-b border-gray-100 pb-3">
+            
+            <div class="col-span-6">
+              <div class="font-medium text-gray-900">{{ item.article?.name }}</div>
+              <div class="text-xs text-gray-500">{{ item.article?.pricePerDay | currency:'DZD ':'symbol':'1.0-0' }}/jour</div>
+            </div>
+            
+            <input 
+              type="number" 
+              [(ngModel)]="item.quantity"
+              min="1"
+              class="col-span-3 px-2 py-1 text-center border border-gray-300 rounded text-xs"
+            >
+            
+            <div class="col-span-2 text-right font-medium">
+              {{ (item.article?.pricePerDay || 0) * item.quantity | currency:'DZD ':'symbol':'1.0-0' }}
+            </div>
+            
+            <button 
+              (click)="removeItem(i)"
+              class="col-span-1 text-red-600 hover:text-red-800"
+            >
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
         </div>
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
+
+        <!-- Empty Cart State -->
+        <div *ngIf="reservationItems.length === 0" class="text-center py-8 text-gray-500">
+          <i class="fas fa-shopping-cart text-3xl mb-3"></i>
+          <p class="text-sm">Aucun article sélectionné</p>
+          <p class="text-xs mt-1">Ajoutez des articles pour voir votre résumé</p>
+        </div>
+
+        <!-- Pricing Summary -->
+        <div class="border-t border-gray-200 pt-4" *ngIf="reservationItems.length > 0">
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span>Sous-total/jour:</span>
+              <span>{{ calculateTotalPrice() | currency:'DZD ':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Durée:</span>
+              <span>{{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="flex justify-between items-center font-semibold text-lg border-t pt-2">
+              <span>Total:</span>
+              <span class="text-blue-600">{{ calculateTotalPrice() * calculateDays() | currency:'DZD ':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+          
+          <p class="text-xs text-gray-500 mt-2">
+            Taxes et frais calculés à la finalisation.
+          </p>
+        </div>
+      </div>
+
+      <!-- Drawer Footer with Actions -->
+      <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div *ngIf="reservationItems.length > 0" class="space-y-3">
+          <button 
+            type="submit"
+            (click)="onSubmit()"
+            [disabled]="!selectedClientId || submitting"
+            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+          >
+            <span *ngIf="!submitting">Sauvegarder la Réservation</span>
+            <span *ngIf="submitting">Création en cours...</span>
+          </button>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button class="text-xs bg-gray-100 text-gray-700 py-2 px-3 rounded hover:bg-gray-200">
+              Sauver & Imprimer
+            </button>
+            <button class="text-xs bg-gray-100 text-gray-700 py-2 px-3 rounded hover:bg-gray-200">
+              Sauver & PDF
+            </button>
+          </div>
+        </div>
+        
+        <div *ngIf="reservationItems.length === 0" class="text-center">
+          <button 
+            (click)="closeDrawer()"
+            class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200"
+          >
+            Fermer
+          </button>
         </div>
       </div>
     </div>
-
-    <!-- Action Buttons -->
-    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-      <button 
-        type="button" 
-        (click)="onCancel()"
-        [disabled]="submitting"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Annuler
-      </button>
-      <button 
-        type="submit" 
-        [disabled]="reservationItems.length === 0 || submitting"
-        class="relative px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <span *ngIf="!submitting">Créer la réservation</span>
-        <span *ngIf="submitting" class="flex items-center">
-          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Création en cours...
-        </span>
-      </button>
-    </div>
-  </div>
-</form>
+  </div> 
+</div>

@@ -26,7 +26,6 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   itemsPerPage: number = 10;
   totalItems = 0;
   error: string | null = null;
-  showCreateModal = false;
 
   private destroy$ = new Subject<void>();
 
@@ -43,7 +42,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     // Add the new reservation to the beginning of the list
     this.reservations = [newReservation, ...this.reservations];
     this.filteredReservations = [newReservation, ...this.filteredReservations];
-    this.showCreateModal = false;
+
     this.totalItems++;
   }
 
@@ -180,7 +179,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     return this.filteredReservations.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
-  showFilters: boolean = false; 
+  showFilters: boolean = false;
 
   // Add these methods to your component class
 
