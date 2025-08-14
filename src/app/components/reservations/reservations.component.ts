@@ -26,6 +26,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   itemsPerPage: number = 10;
   totalItems = 0;
   error: string | null = null;
+  showFilters: boolean = false;
+  showCreateForm: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -38,17 +40,26 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     this.loadReservations();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  showCreateReservation(): void {
+    this.showCreateForm = true;
+  }
+
+  onCancelCreate(): void {
+    this.showCreateForm = false;
+  }
+
   onReservationCreated(newReservation: Reservation): void {
     // Add the new reservation to the beginning of the list
     this.reservations = [newReservation, ...this.reservations];
     this.filteredReservations = [newReservation, ...this.filteredReservations];
 
     this.totalItems++;
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.showCreateForm = false;
   }
 
   loadReservations(): void {
@@ -178,10 +189,6 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredReservations.slice(startIndex, startIndex + this.itemsPerPage);
   }
-
-  showFilters: boolean = false;
-
-  // Add these methods to your component class
 
   /**
    * Clear the search term and refresh filters

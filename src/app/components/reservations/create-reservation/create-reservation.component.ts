@@ -79,6 +79,49 @@ export class CreateReservationComponent implements OnInit {
     this.isDrawerOpen = false;
   }
 
+  // Quantity control methods
+  decreaseQuantity(article: ArticleWithTemp): void {
+    if (article.tempQuantity > 1) {
+      article.tempQuantity--;
+    }
+  }
+
+  increaseQuantity(article: ArticleWithTemp): void {
+    if (article.tempQuantity < article.quantityTotal) {
+      article.tempQuantity++;
+    }
+  }
+
+  onQuantityInput(article: ArticleWithTemp, event: any): void {
+    const value = parseInt(event.target.value);
+    
+    // Allow empty input for better UX while typing
+    if (event.target.value === '' || isNaN(value)) {
+      return;
+    }
+    
+    // Real-time validation
+    if (value < 1) {
+      article.tempQuantity = 1;
+    } else if (value > article.quantityTotal) {
+      article.tempQuantity = article.quantityTotal;
+    } else {
+      article.tempQuantity = value;
+    }
+  }
+
+  validateQuantity(article: ArticleWithTemp): void {
+    // Ensure valid quantity on blur (when user leaves the input)
+    if (!article.tempQuantity || article.tempQuantity < 1) {
+      article.tempQuantity = 1;
+    } else if (article.tempQuantity > article.quantityTotal) {
+      article.tempQuantity = article.quantityTotal;
+    }
+    
+    // Ensure it's an integer
+    article.tempQuantity = Math.floor(article.tempQuantity);
+  }
+
   private loadData(): void {
     this.loading = true;
     this.error = null;

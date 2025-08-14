@@ -46,7 +46,7 @@
     <!-- Create Reservation Button -->
     <div class="px-2 pb-4">
       <button
-        (click)="onCreateReservation()"
+       [routerLink]="'/reservations/new'"
         class="group flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 relative"
         title="Créer une réservation"
       >
