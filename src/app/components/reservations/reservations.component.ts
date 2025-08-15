@@ -26,7 +26,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   error: string | null = null;
   showFilters: boolean = false;
   showCreateForm: boolean = false;
-
+ 
   private destroy$ = new Subject<void>();
 
   constructor(
