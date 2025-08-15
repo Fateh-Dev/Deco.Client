@@ -7,7 +7,7 @@ import { Client } from '../models/client';
   providedIn: 'root'
 })
 export class ClientService {
-  private baseUrl = 'http://localhost:5199';
+  private baseUrl = 'http://localhost:5000';
   private apiUrl = `${this.baseUrl}/api/Client`; 
 
   constructor(private http: HttpClient) {}

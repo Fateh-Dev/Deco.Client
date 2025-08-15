@@ -14,7 +14,7 @@ import { catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class FileUploadService {
-  private baseUrl = 'http://localhost:5199';
+  private baseUrl = 'http://localhost:5000';
   private apiUrl = `${this.baseUrl}/api/Articles/upload`;
 
   constructor(private http: HttpClient) {}
