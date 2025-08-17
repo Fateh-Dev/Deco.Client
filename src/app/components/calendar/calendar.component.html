@@ -36,19 +36,28 @@
              class="min-h-[80px] border-r border-b last:border-r-0 p-1 relative group cursor-pointer hover:bg-gray-50"
              [ngClass]="{'bg-gray-50': !day.isCurrentMonth, 'bg-blue-50': day.isToday}"
              (click)="selectDay(day)">
-          <div class="flex justify-between">
+          <div class="flex justify-between items-start">
             <span class="text-sm" [ngClass]="{'text-gray-400': !day.isCurrentMonth, 'text-blue-600 font-bold': day.isToday}">{{ day.day }}</span>
-            <span *ngIf="day.revenue > 0" class="text-xs px-1 py-0.5 rounded bg-green-100 text-green-700">{{ formatCurrency(day.revenue) }}</span>
+            <div class="flex flex-col items-end space-y-1">
+              <span *ngIf="day.revenue > 0" class="text-xs px-1 py-0.5 rounded bg-green-100 text-green-700">{{ formatCurrency(day.revenue) }}</span>
+              <!-- Ship icon for days with reservations -->
+              <div *ngIf="day.hasReservations" class="flex items-center space-x-1">
+                <i class="fas fa-ship text-blue-600 text-xs"></i>
+                <span class="text-xs text-blue-600 font-medium">{{ day.reservations.length }}</span>
+              </div>
+            </div>
           </div>
           <div class="mt-1 space-y-0.5">
             <div *ngFor="let reservation of getVisibleReservations(day); let i = index"
-                 class="text-xs p-0.5 rounded truncate border cursor-pointer"
+                 class="text-xs p-0.5 rounded truncate border cursor-pointer flex items-center space-x-1"
                  [ngClass]="getReservationStatusClass(reservation.status)"
                  (click)="viewReservation(reservation, $event)">
-              {{ getClientName(reservation.clientId) }}
+              <i class="fas fa-ship text-xs"></i>
+              <span>{{ getClientName(reservation.clientId) }}</span>
             </div>
-            <div *ngIf="hasHiddenReservations(day)" class="text-xs text-gray-500 text-center cursor-pointer" (click)="selectDay(day)">
-              +{{ getHiddenReservationsCount(day) }}
+            <div *ngIf="hasHiddenReservations(day)" class="text-xs text-gray-500 text-center cursor-pointer flex items-center justify-center space-x-1" (click)="selectDay(day)">
+              <i class="fas fa-ship text-xs"></i>
+              <span>+{{ getHiddenReservationsCount(day) }}</span>
             </div>
           </div>
           <button *ngIf="day.isCurrentMonth && !day.hasReservations" 
@@ -105,7 +114,10 @@
         <button (click)="closeReservationModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="space-y-2 text-sm mb-4">
-        <div><strong>Client:</strong> {{ getClientName(selectedReservation.clientId) }}</div>
+        <div class="flex items-center space-x-2">
+          <i class="fas fa-ship text-blue-600"></i>
+          <div><strong>Client:</strong> {{ getClientName(selectedReservation.clientId) }}</div>
+        </div>
         <div><strong>Période:</strong> {{ formatDate(selectedReservation.startDate) }} - {{ formatDate(selectedReservation.endDate) }}</div>
         <div><strong>Prix:</strong> {{ formatCurrency(selectedReservation.totalPrice) }}</div>
         <div><strong>Statut:</strong> <span class="px-2 py-1 rounded text-xs" [ngClass]="getStatusClass(selectedReservation.status)">{{ getStatusLabel(selectedReservation.status) }}</span></div>
@@ -136,9 +148,12 @@
       </div>
       <div class="space-y-2 max-h-32 overflow-y-auto mb-4">
         <div *ngFor="let reservation of selectedDay.reservations" 
-             class="border rounded p-2 hover:bg-gray-50 cursor-pointer text-sm flex justify-between"
+             class="border rounded p-2 hover:bg-gray-50 cursor-pointer text-sm flex justify-between items-center"
              (click)="viewReservation(reservation)">
-          <span>{{ getClientName(reservation.clientId) }}</span>
+          <div class="flex items-center space-x-2">
+            <i class="fas fa-ship text-blue-600"></i>
+            <span>{{ getClientName(reservation.clientId) }}</span>
+          </div>
           <span>{{ formatCurrency(reservation.totalPrice) }}</span>
         </div>
       </div>

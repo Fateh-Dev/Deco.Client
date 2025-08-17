@@ -1,441 +1,126 @@
-/* calendar-dashboard.component.scss */
-
-/* Calendar-specific animations using Tailwind-compatible approach */
-
-/* Smooth calendar entry animations */
+/* Minimal calendar styles */
 .calendar-day {
-    @apply transition-all duration-200 ease-in-out;
-    
-    &:hover {
-      @apply transform -translate-y-1 shadow-lg;
-    }
+  @apply transition-all duration-200 ease-in-out;
+  
+  &:hover {
+    @apply transform -translate-y-1 shadow-lg;
+  }
+}
+
+.reservation-item {
+  @apply transition-all duration-150 ease-in-out;
+  
+  &:hover {
+    @apply transform scale-105 shadow-md;
+  }
+}
+
+.today-highlight {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+    border-radius: 0.75rem;
+    z-index: -1;
+    opacity: 0.1;
+  }
+}
+
+.revenue-badge {
+  @apply transition-all duration-200;
+}
+
+.modal-overlay {
+  @apply transition-opacity duration-300 ease-out;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  @apply transition-all duration-300 ease-out;
+}
+
+.quick-action-btn {
+  @apply transition-all duration-200 ease-in-out;
+  
+  &:hover {
+    @apply transform -translate-y-1 shadow-lg;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-grid .calendar-day {
+    min-height: 70px;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-grid .calendar-day {
+    min-height: 60px;
+    @apply p-1;
+  }
+}
+
+.stats-card {
+  @apply transition-all duration-200 ease-in-out;
+  
+  &:hover {
+    @apply transform -translate-y-1 shadow-xl;
+  }
+}
+
+.loading-spinner {
+  @apply animate-spin;
+  animation-duration: 1s;
+}
+
+.weekend-day {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background-color: #a855f7;
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+}
+
+.status-indicator {
+  @apply transition-all duration-150 ease-in-out;
+  
+  &.status-en-attente {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
   }
   
-  /* Reservation item hover effects */
-  .reservation-item {
-    @apply transition-all duration-150 ease-in-out;
-    
-    &:hover {
-      @apply transform scale-105 shadow-md;
-    }
+  &.status-confirmee {
+    @apply bg-green-100 text-green-800 border-green-200;
   }
   
-  /* Today highlight enhancement */
-  .today-highlight {
-    position: relative;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-      border-radius: 0.75rem;
-      z-index: -1;
-      opacity: 0.1;
-    }
+  &.status-annulee {
+    @apply bg-red-100 text-red-800 border-red-200;
   }
   
-  /* Revenue badge animations */
-  .revenue-badge {
-    @apply transition-all duration-200;
-    
-    &.animate-pulse-custom {
-      animation: pulse-revenue 2s ease-in-out infinite;
-    }
+  &.status-terminee {
+    @apply bg-blue-100 text-blue-800 border-blue-200;
   }
-  
-  @keyframes pulse-revenue {
-    0%, 100% {
-      @apply opacity-100 scale-100;
-    }
-    50% {
-      @apply opacity-80 scale-105;
-    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  
-  /* Modal entrance animations */
-  .modal-overlay {
-    @apply transition-opacity duration-300 ease-out;
-    backdrop-filter: blur(4px);
-    
-    &.entering {
-      @apply opacity-0;
-    }
-    
-    &.entered {
-      @apply opacity-100;
-    }
-  }
-  
-  .modal-content {
-    @apply transition-all duration-300 ease-out;
-    
-    &.entering {
-      @apply opacity-0 transform scale-90 translate-y-4;
-    }
-    
-    &.entered {
-      @apply opacity-100 transform scale-100 translate-y-0;
-    }
-  }
-  
-  /* Enhanced hover states for quick actions */
-  .quick-action-btn {
-    @apply transition-all duration-200 ease-in-out;
-    
-    &:hover {
-      @apply transform -translate-y-1 shadow-lg;
-      
-      .action-icon {
-        @apply transform scale-110;
-      }
-    }
-    
-    &:active {
-      @apply transform translate-y-0 shadow-md;
-    }
-  }
-  
-  /* Calendar grid responsiveness enhancement */
-  @media (max-width: 768px) {
-    .calendar-grid {
-      .calendar-day {
-        min-height: 70px;
-        
-        .day-number {
-          @apply text-xs;
-        }
-        
-        .reservation-item {
-          @apply text-xs p-1;
-          
-          .reservation-text {
-            @apply truncate;
-            max-width: 60px;
-          }
-        }
-        
-        .revenue-badge {
-          @apply text-xs px-1 py-0.5;
-        }
-      }
-    }
-  }
-  
-  @media (max-width: 640px) {
-    .calendar-grid {
-      .calendar-day {
-        min-height: 60px;
-        @apply p-1;
-        
-        .reservation-item {
-          @apply hidden;
-          
-          &:first-child {
-            @apply block;
-          }
-        }
-        
-        .more-indicator {
-          @apply text-xs;
-        }
-      }
-    }
-  }
-  
-  /* Stats cards enhancement */
-  .stats-card {
-    @apply transition-all duration-200 ease-in-out;
-    
-    &:hover {
-      @apply transform -translate-y-1 shadow-xl;
-      
-      .stat-icon {
-        @apply transform scale-110 rotate-6;
-      }
-    }
-  }
-  
-  /* Upcoming reservations list */
-  .upcoming-reservation {
-    @apply transition-all duration-150 ease-in-out;
-    
-    &:hover {
-      @apply transform translate-x-1 shadow-md bg-gray-50;
-    }
-  }
-  
-  /* Loading animation customization */
-  .loading-spinner {
-    @apply animate-spin;
-    animation-duration: 1s;
-  }
-  
-  /* Custom scrollbar for calendar areas */
-  .calendar-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 #f1f5f9;
-    
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      @apply bg-gray-100 rounded;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      @apply bg-gray-300 rounded;
-      
-      &:hover {
-        @apply bg-gray-400;
-      }
-    }
-  }
-  
-  /* Weekend styling enhancement */
-  .weekend-day {
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 6px;
-      height: 6px;
-      background-color: #a855f7;
-      border-radius: 50%;
-      opacity: 0.6;
-    }
-  }
-  
-  /* Add reservation button enhancement */
-  .add-reservation-overlay {
-    @apply transition-all duration-200 ease-in-out;
-    backdrop-filter: blur(2px);
-    
-    .add-btn {
-      @apply transition-all duration-150 ease-in-out;
-      
-      &:hover {
-        @apply transform scale-105 shadow-md;
-      }
-    }
-  }
-  
-  /* Navigation buttons enhancement */
-  .nav-button {
-    @apply transition-all duration-200 ease-in-out;
-    
-    &:hover {
-      @apply transform scale-105 shadow-md;
-    }
-    
-    &:active {
-      @apply transform scale-95;
-    }
-  }
-  
-  /* Month title animation */
-  .month-title {
-    @apply transition-all duration-300 ease-in-out;
-    
-    &.changing {
-      @apply transform scale-95 opacity-50;
-    }
-  }
-  
-  /* Status indicator enhancements */
-  .status-indicator {
-    @apply transition-all duration-150 ease-in-out;
-    
-    &:hover {
-      @apply transform scale-105 shadow-sm;
-    }
-    
-    &.status-en-attente {
-      @apply bg-yellow-100 text-yellow-800 border-yellow-200;
-      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.1);
-    }
-    
-    &.status-confirmee {
-      @apply bg-green-100 text-green-800 border-green-200;
-      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.1);
-    }
-    
-    &.status-annulee {
-      @apply bg-red-100 text-red-800 border-red-200;
-      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.1);
-    }
-    
-    &.status-terminee {
-      @apply bg-blue-100 text-blue-800 border-blue-200;
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
-    }
-  }
-  
-  /* Empty state animations */
-  .empty-state {
-    @apply transition-all duration-300 ease-in-out;
-    
-    .empty-icon {
-      @apply transition-transform duration-1000 ease-in-out;
-      animation: float-gentle 4s ease-in-out infinite;
-    }
-    
-    &:hover .empty-icon {
-      @apply transform scale-110;
-    }
-  }
-  
-  @keyframes float-gentle {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-8px);
-    }
-  }
-  
-  /* Focus states for accessibility */
-  button:focus,
-  [role="button"]:focus {
-    @apply outline-none ring-2 ring-blue-500 ring-opacity-50 ring-offset-2;
-  }
-  
-  .calendar-day:focus {
-    @apply outline-none ring-2 ring-blue-500 ring-opacity-50 ring-offset-1;
-  }
-  
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    .calendar-day {
-      @apply border-2 border-gray-800;
-    }
-    
-    .reservation-item {
-      @apply border-2 font-semibold;
-    }
-    
-    .text-gray-600,
-    .text-gray-700 {
-      @apply text-black;
-    }
-    
-    .bg-gray-50 {
-      @apply bg-white;
-    }
-  }
-  
-  /* Reduced motion support */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-    
-    .calendar-day,
-    .reservation-item,
-    .quick-action-btn,
-    .stats-card {
-      @apply transform-none;
-    }
-  }
-  
-  /* Print styles */
-  @media print {
-    .quick-actions,
-    .nav-button,
-    .add-reservation-overlay,
-    button {
-      @apply hidden;
-    }
-    
-    .calendar-day {
-      @apply shadow-none border border-gray-400;
-      break-inside: avoid;
-    }
-    
-    .modal-overlay {
-      @apply hidden;
-    }
-    
-    .bg-gray-50 {
-      @apply bg-white;
-    }
-    
-    .text-blue-600,
-    .text-green-600,
-    .text-purple-600,
-    .text-orange-600 {
-      @apply text-black;
-    }
-  }
-  
-  /* Dark mode support (if needed) */
-  @media (prefers-color-scheme: dark) {
-    .calendar-dark {
-      .calendar-day {
-        @apply bg-gray-800 border-gray-700 text-white;
-        
-        &.today {
-          @apply bg-blue-900 ring-blue-400;
-        }
-        
-        &:hover {
-          @apply bg-gray-700;
-        }
-      }
-      
-      .reservation-item {
-        &.status-en-attente {
-          @apply bg-yellow-900 text-yellow-200 border-yellow-700;
-        }
-        
-        &.status-confirmee {
-          @apply bg-green-900 text-green-200 border-green-700;
-        }
-        
-        &.status-annulee {
-          @apply bg-red-900 text-red-200 border-red-700;
-        }
-        
-        &.status-terminee {
-          @apply bg-blue-900 text-blue-200 border-blue-700;
-        }
-      }
-    }
-  }
-  
-  /* Custom utility classes */
-  .calendar-fade-in {
-    animation: fadeInUp 0.6s ease-out forwards;
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .stagger-animation {
-    &:nth-child(1) { animation-delay: 0.1s; }
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.3s; }
-    &:nth-child(4) { animation-delay: 0.4s; }
-    &:nth-child(5) { animation-delay: 0.5s; }
-    &:nth-child(6) { animation-delay: 0.6s; }
-    &:nth-child(7) { animation-delay: 0.7s; }
-  }
+}

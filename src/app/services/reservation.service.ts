@@ -34,4 +34,8 @@ export class ReservationService {
   deleteReservation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getCalendarData(year: number, month: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/calendar/${year}/${month}`);
+  }
 }
