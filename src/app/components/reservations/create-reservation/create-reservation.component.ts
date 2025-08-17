@@ -11,6 +11,7 @@ import { ClientService } from '../../../services/client.service';
 import { CategoryService } from '../../../services/category.service';
 import { ReservationService } from '../../../services/reservation.service';
 import { ReservationItem } from '../../../models/reservation-item';
+import { ActivatedRoute } from '@angular/router';
 
 // Extended Article interface for UI purposes
 interface ArticleWithTemp extends Article {
@@ -55,15 +56,72 @@ export class CreateReservationComponent implements OnInit {
   // Drawer state
   isDrawerOpen = false;
 
-  constructor(
+  constructor(private route: ActivatedRoute,
     private articleService: ArticleService,
     private clientService: ClientService,
     private categoryService: CategoryService,
     private reservationService: ReservationService
-  ) { }
+  ) { } 
 
   ngOnInit(): void {
+    // Read the 'date' parameter from the URL
+    this.route.queryParams.subscribe(params => {
+      const dateParam = params['date'];
+      console.log('Date parameter from URL:', dateParam); // Debug log
+      
+      if (dateParam) {
+        // Validate the date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(dateParam)) {
+          const paramDate = new Date(dateParam);
+          
+          console.log('Parsed date:', paramDate); // Debug log
+          console.log('Is valid date:', !isNaN(paramDate.getTime())); // Debug log
+          
+          // Check if the date is valid
+          if (!isNaN(paramDate.getTime())) {
+            this.startDateString = dateParam;
+            this.startDate = paramDate;
+            
+            // Update end date to be at least one day after start date
+            const nextDay = new Date(paramDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            this.endDateString = this.formatDate(nextDay);
+            this.endDate = nextDay;
+            
+            console.log('Start date set to:', this.startDateString); // Debug log
+            console.log('End date set to:', this.endDateString); // Debug log
+            
+            this.onDateChange(); // Trigger any date change logic
+          } else {
+            console.warn('Invalid date parameter:', dateParam);
+            this.setDefaultDates();
+          }
+        } else {
+          console.warn('Invalid date format in URL parameter (expected YYYY-MM-DD):', dateParam);
+          this.setDefaultDates();
+        }
+      } else {
+        console.log('No date parameter found, using default dates');
+        this.setDefaultDates();
+      }
+    });
+
+    // Initialize your other data (clients, articles, categories, etc.)
     this.loadData();
+  }
+
+  private setDefaultDates(): void {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    this.startDate = today;
+    this.endDate = tomorrow;
+    this.startDateString = this.formatDate(today);
+    this.endDateString = this.formatDate(tomorrow);
+    
+    console.log('Default dates set - Start:', this.startDateString, 'End:', this.endDateString);
   }
 
   // Drawer methods
@@ -164,13 +222,24 @@ export class CreateReservationComponent implements OnInit {
   }
 
   onDateChange(): void {
-    // If end date is before start date, update it to match start date
+    // Update Date objects when string values change
+    if (this.startDateString) {
+      this.startDate = this.parseDate(this.startDateString);
+    }
+    if (this.endDateString) {
+      this.endDate = this.parseDate(this.endDateString);
+    }
+
+    // If end date is before or equal to start date, update it to be one day after start date
     if (this.startDateString && this.endDateString) {
       const start = this.parseDate(this.startDateString);
       const end = this.parseDate(this.endDateString);
 
-      if (end < start) {
-        this.endDateString = this.startDateString;
+      if (end <= start) {
+        const nextDay = new Date(start);
+        nextDay.setDate(nextDay.getDate() + 1);
+        this.endDateString = this.formatDate(nextDay);
+        this.endDate = nextDay;
       }
     }
   }
@@ -327,5 +396,4 @@ export class CreateReservationComponent implements OnInit {
     // Also close the drawer if it's open
     this.isDrawerOpen = false;
   }
-  
 }

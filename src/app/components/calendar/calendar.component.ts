@@ -70,193 +70,171 @@ export class CalendarComponent implements OnInit {
     this.error = '';
 
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1; // API expects 1-based month
-
-    console.log('Loading calendar data for:', year, month);
-
-    // Use the new calendar API directly
-    this.reservationService.getCalendarData(year, month).subscribe({
-      next: (data) => {
-        console.log('Calendar data received:', data);
-        
-        // Load clients for display names
-        this.clientService.getClients().subscribe({
-          next: (clients) => {
-            this.clients = clients || [];
-            // Use API data directly instead of generating calendar
-            this.mapApiDataToCalendar(data);
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Error loading clients:', error);
-            this.clients = [];
-            this.mapApiDataToCalendar(data);
-            this.loading = false;
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading calendar data:', error);
-        this.error = 'Erreur lors du chargement des données du calendrier';
-        this.loading = false;
-        // Fallback to old method if API fails
-        this.loadDataFallback();
-      }
-    });
-  }
-
-  mapApiDataToCalendar(apiData: any): void {
-    console.log('Mapping API data to calendar:', apiData);
-    
-    // Convert API response to our calendar format
-    const days: CalendarDay[] = apiData.days.map((dayData: any) => {
-      const date = new Date(dayData.date);
-      const reservations: Reservation[] = dayData.reservations.map((r: any) => ({
-        id: r.id,
-        clientId: r.clientId,
-        startDate: r.startDate,
-        endDate: r.endDate,
-        totalPrice: r.totalPrice,
-        status: r.status,
-        createdAt: r.startDate
-      }));
-
-      return {
-        date: date,
-        day: dayData.day,
-        isCurrentMonth: dayData.isCurrentMonth,
-        isToday: dayData.isToday,
-        isWeekend: dayData.isWeekend,
-        reservations: reservations,
-        hasReservations: dayData.hasReservations,
-        revenue: dayData.revenue || 0
-      };
-    });
-
-    // Also get all reservations for stats calculations
-    this.reservations = apiData.days.flatMap((day: any) => 
-      day.reservations.map((r: any) => ({
-        id: r.id,
-        clientId: r.clientId,
-        startDate: r.startDate,
-        endDate: r.endDate,
-        totalPrice: r.totalPrice,
-        status: r.status,
-        createdAt: r.startDate
-      }))
-    );
-
-    this.currentMonth = {
-      year: apiData.year,
-      month: apiData.month - 1, // Convert from 1-based to 0-based for JS
-      monthName: apiData.monthName,
-      days: days
-    };
-
-    console.log('Calendar mapped successfully:', this.currentMonth);
-  }
-
-  loadDataFallback(): void {
-    console.log('Using fallback method...');
-    this.reservationService.getReservations().subscribe({
-      next: (reservations) => {
-        this.clientService.getClients().subscribe({
-          next: (clients) => {
-            console.log('Fallback data loaded:', { reservations: reservations?.length, clients: clients?.length });
-            this.reservations = reservations || [];
-            this.clients = clients || [];
-            this.generateCalendar(new Date());
-            this.loading = false;
-            this.error = ''; // Clear error when fallback succeeds
-          },
-          error: (error) => {
-            console.error('Error loading clients:', error);
-            this.reservations = reservations || [];
-            this.clients = [];
-            this.generateCalendar(new Date());
-            this.loading = false;
-            this.error = 'Erreur lors du chargement des clients';
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading reservations:', error);
-        this.error = 'Erreur lors du chargement des réservations';
-        this.loading = false;
-      }
-    });
+    this.loadMonthData(today.getFullYear(), today.getMonth());
   }
 
   loadMonthData(year: number, month: number): void {
     this.loading = true;
     this.error = '';
 
-    // month is 0-based from JS Date, but API expects 1-based
-    this.reservationService.getCalendarData(year, month + 1).subscribe({
-      next: (data) => {
-        console.log('Month data received:', data);
+    // Load clients first
+    this.clientService.getClients().subscribe({
+      next: (clients) => {
+        this.clients = clients || [];
         
-        this.clientService.getClients().subscribe({
-          next: (clients) => {
-            this.clients = clients || [];
-            this.mapApiDataToCalendar(data);
+        // Try to use API calendar data, fallback to manual generation
+        this.reservationService.getCalendarData(year, month + 1).subscribe({
+          next: (data) => {
+            console.log('API Calendar data received:', data);
+            this.mapApiDataToCalendar(data, year, month);
             this.loading = false;
           },
           error: (error) => {
-            console.error('Error loading clients:', error);
-            this.clients = [];
-            this.mapApiDataToCalendar(data);
-            this.loading = false;
+            console.error('API failed, using fallback:', error);
+            // Fallback: load reservations and generate calendar manually
+            this.reservationService.getReservations().subscribe({
+              next: (reservations) => {
+                this.reservations = (reservations || []).map(r => this.createReservationFromApiData(r));
+                this.generateCalendarFromReservations(year, month);
+                this.loading = false;
+              },
+              error: (error) => {
+                console.error('Error loading reservations:', error);
+                this.error = 'Erreur lors du chargement des données';
+                this.loading = false;
+              }
+            });
           }
         });
       },
       error: (error) => {
-        console.error('Error loading month data:', error);
-        this.error = 'Erreur lors du chargement des données du mois';
+        console.error('Error loading clients:', error);
+        this.clients = [];
+        this.error = 'Erreur lors du chargement des clients';
         this.loading = false;
       }
     });
   }
 
-  generateCalendar(date: Date): void {
-    const year = date.getFullYear();
-    const month = date.getMonth();
+  // Utility method to create a complete Reservation object from API data
+  private createReservationFromApiData(apiReservation: any): Reservation {
+    return {
+      id: apiReservation.id,
+      clientId: apiReservation.clientId,
+      startDate: apiReservation.startDate,
+      endDate: apiReservation.endDate,
+      totalPrice: apiReservation.totalPrice,
+      status: apiReservation.status,
+      createdAt: apiReservation.createdAt || apiReservation.startDate || new Date().toISOString(),
+      isActive: apiReservation.isActive !== undefined ? apiReservation.isActive : true,
+      reservationItems: apiReservation.reservationItems || []
+    };
+  }
+
+  mapApiDataToCalendar(apiData: any, year: number, month: number): void {
+    console.log('Mapping API data for:', year, month + 1);
+    
+    // Extract reservations from API data
+    this.reservations = [];
+    if (apiData.days && Array.isArray(apiData.days)) {
+      apiData.days.forEach((day: any) => {
+        if (day.reservations && Array.isArray(day.reservations)) {
+          day.reservations.forEach((r: any) => {
+            this.reservations.push(this.createReservationFromApiData(r));
+          });
+        }
+      });
+    }
+    
+    // Generate calendar manually with the reservation data
+    this.generateCalendarFromReservations(year, month);
+  }
+
+  generateCalendarFromReservations(year: number, month: number): void {
     const today = new Date();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
     const days: CalendarDay[] = [];
-    const currentDate = new Date(startDate);
-
-    // Generate 42 days (6 weeks)
-    for(let i = 0; i < 42; i++) {
+    
+    // Calculate how many days we need to show from previous month
+    // We want to show empty/disabled cells to align the calendar properly
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      const prevMonthDate = new Date(year, month, -i);
+      days.push({
+        date: prevMonthDate,
+        day: prevMonthDate.getDate(),
+        isCurrentMonth: false,
+        isToday: false,
+        isWeekend: prevMonthDate.getDay() === 0 || prevMonthDate.getDay() === 6,
+        reservations: [],
+        hasReservations: false,
+        revenue: 0
+      });
+    }
+    
+    // Add all days of the current month
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+      const currentDate = new Date(year, month, day);
       const dayReservations = this.getReservationsForDate(currentDate);
       const dayRevenue = this.calculateDayRevenue(dayReservations);
-
+      const isToday = this.isSameDay(currentDate, today);
+      
       days.push({
         date: new Date(currentDate),
-        day: currentDate.getDate(),
-        isCurrentMonth: currentDate.getMonth() === month,
-        isToday: this.isSameDay(currentDate, today),
+        day: day,
+        isCurrentMonth: true,
+        isToday: isToday,
         isWeekend: currentDate.getDay() === 0 || currentDate.getDay() === 6,
         reservations: dayReservations,
         hasReservations: dayReservations.length > 0,
         revenue: dayRevenue
       });
-
-      currentDate.setDate(currentDate.getDate() + 1);
     }
-
+    
+    // Add days from next month to complete the last week if needed
+    const totalCells = days.length;
+    const remainingCells = totalCells % 7;
+    if (remainingCells > 0) {
+      const cellsToAdd = 7 - remainingCells;
+      for (let i = 1; i <= cellsToAdd; i++) {
+        const nextMonthDate = new Date(year, month + 1, i);
+        days.push({
+          date: nextMonthDate,
+          day: i,
+          isCurrentMonth: false,
+          isToday: false,
+          isWeekend: nextMonthDate.getDay() === 0 || nextMonthDate.getDay() === 6,
+          reservations: [],
+          hasReservations: false,
+          revenue: 0
+        });
+      }
+    }
+    
     this.currentMonth = {
-      year,
-      month,
+      year: year,
+      month: month,
       monthName: this.monthNames[month],
-      days
+      days: days
     };
+    
+    console.log('Calendar generated:', {
+      month: this.monthNames[month],
+      year: year,
+      totalDays: days.length,
+      currentMonthDays: days.filter(d => d.isCurrentMonth).length,
+      firstDay: days.find(d => d.isCurrentMonth)?.date,
+      lastDay: days.filter(d => d.isCurrentMonth).pop()?.date
+    });
+  }
+
+  // Keep the existing generateCalendar method as fallback but fix it
+  generateCalendar(date: Date): void {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    this.generateCalendarFromReservations(year, month);
   }
 
   getReservationsForDate(date: Date): Reservation[] {
@@ -293,14 +271,14 @@ export class CalendarComponent implements OnInit {
 
   // Navigation methods
   goToPreviousMonth(): void {
-    const prevYear = this.currentMonth.month === 0 ? this.currentMonth.year - 1 : this.currentMonth.year;
     const prevMonth = this.currentMonth.month === 0 ? 11 : this.currentMonth.month - 1;
+    const prevYear = this.currentMonth.month === 0 ? this.currentMonth.year - 1 : this.currentMonth.year;
     this.loadMonthData(prevYear, prevMonth);
   }
 
   goToNextMonth(): void {
-    const nextYear = this.currentMonth.month === 11 ? this.currentMonth.year + 1 : this.currentMonth.year;
     const nextMonth = this.currentMonth.month === 11 ? 0 : this.currentMonth.month + 1;
+    const nextYear = this.currentMonth.month === 11 ? this.currentMonth.year + 1 : this.currentMonth.year;
     this.loadMonthData(nextYear, nextMonth);
   }
 
@@ -311,7 +289,11 @@ export class CalendarComponent implements OnInit {
 
   // Event handlers
   selectDay(day: CalendarDay): void {
-    if(day.hasReservations) {
+    if (!day.isCurrentMonth) {
+      return; // Don't do anything for non-current month days
+    }
+    
+    if (day.hasReservations) {
       this.selectedDay = day;
       this.showDayModal = true;
     }
@@ -339,13 +321,31 @@ export class CalendarComponent implements OnInit {
   }
 
   addReservation(date: Date, event?: Event): void {
-    if(event) {
-      event.stopPropagation();
-    }
-    this.router.navigate(['/reservations/new'], {
-      queryParams: { date: date.toISOString().split('T')[0] }
-    });
+  if (event) {
+    event.stopPropagation();
   }
+
+  // Only allow adding reservations for current month
+  const dayData = this.currentMonth.days.find(d =>
+    d.date.getDate() === date.getDate() &&
+    d.date.getMonth() === date.getMonth() &&
+    d.date.getFullYear() === date.getFullYear()
+  );
+
+  if (!dayData || !dayData.isCurrentMonth) {
+    return;
+  }
+
+  // Format date to YYYY-MM-DD without timezone conversion
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
+
+  this.router.navigate(['/reservations/new'], {
+    queryParams: { date: dateString }
+  });
+}
 
   // Utility methods
   getClientName(clientId: number): string {
