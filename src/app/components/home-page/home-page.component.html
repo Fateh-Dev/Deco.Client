@@ -1,28 +1,28 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen bg-gray-50 p-4">
   <div class="">
     
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Tableau de bord</h1>
-      <p class="text-gray-600">Vue d'ensemble de votre activité de location</p>
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">Tableau de bord</h1>
+      <p class="text-gray-600 text-sm">Vue d'ensemble de votre activité de location</p>
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="loading" class="flex items-center justify-center py-20">
-      <div class="flex items-center space-x-3">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p class="text-gray-700">Chargement des données...</p>
+    <div *ngIf="loading" class="flex items-center justify-center py-12">
+      <div class="flex items-center space-x-2">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <p class="text-gray-700 text-sm">Chargement des données...</p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-      <div class="flex items-center space-x-3 text-red-700">
-        <i class="fas fa-exclamation-circle"></i>
-        <p>{{ error }}</p>
+    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+      <div class="flex items-center space-x-2 text-red-700">
+        <i class="fas fa-exclamation-circle text-sm"></i>
+        <p class="text-sm">{{ error }}</p>
         <button 
           (click)="loadDashboardData()" 
-          class="ml-4 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors">
+          class="ml-3 px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors">
           Réessayer
         </button>
       </div>
@@ -31,28 +31,28 @@
     <div *ngIf="!loading">
       
       <!-- Main Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         
         <!-- Articles Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300 group">
           <div class="flex items-center justify-between">
             <div class="w-full">
-              <div class="flex items-center space-x-3 mb-3">
-                <div class="p-3 bg-green-100 rounded-xl group-hover:scale-110 transition-transform">
-                  <i class="fas fa-boxes text-green-600 text-2xl"></i>
+              <div class="flex items-center space-x-2 mb-2">
+                <div class="p-2 bg-green-100 rounded-lg group-hover:scale-110 transition-transform">
+                  <i class="fas fa-boxes text-green-600 text-lg"></i>
                 </div>
-                <span class="text-gray-700 text-sm font-medium">Articles en stock</span>
+                <span class="text-gray-700 text-xs font-medium">Articles en stock</span>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ totalArticles | number }}</div>
+              <div class="text-xl font-bold text-gray-900 mb-1">{{ totalArticles | number }}</div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1">
-                  <i class="fas fa-cubes text-green-600 text-sm"></i>
-                  <span class="text-green-600 text-sm">{{ totalStock }} unités total</span>
+                  <i class="fas fa-cubes text-green-600 text-xs"></i>
+                  <span class="text-green-600 text-xs">{{ totalStock }} unités total</span>
                 </div>
                 <button 
                   (click)="navigateToArticles()"
                   class="text-green-600 hover:text-green-700 transition-colors">
-                  <i class="fas fa-arrow-right text-lg"></i>
+                  <i class="fas fa-arrow-right text-sm"></i>
                 </button>
               </div>
             </div>
@@ -60,25 +60,25 @@
         </div>
 
         <!-- Reservations Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300 group">
           <div class="flex items-center justify-between">
             <div class="w-full">
-              <div class="flex items-center space-x-3 mb-3">
-                <div class="p-3 bg-orange-100 rounded-xl group-hover:scale-110 transition-transform">
-                  <i class="fas fa-calendar-check text-orange-600 text-2xl"></i>
+              <div class="flex items-center space-x-2 mb-2">
+                <div class="p-2 bg-orange-100 rounded-lg group-hover:scale-110 transition-transform">
+                  <i class="fas fa-calendar-check text-orange-600 text-lg"></i>
                 </div>
-                <span class="text-gray-700 text-sm font-medium">Réservations</span>
+                <span class="text-gray-700 text-xs font-medium">Réservations</span>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ totalReservations | number }}</div>
+              <div class="text-xl font-bold text-gray-900 mb-1">{{ totalReservations | number }}</div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1">
-                  <i class="fas fa-clock text-orange-600 text-sm"></i>
-                  <span class="text-orange-600 text-sm">{{ getActiveReservations() }} actives</span>
+                  <i class="fas fa-clock text-orange-600 text-xs"></i>
+                  <span class="text-orange-600 text-xs">{{ getActiveReservations() }} actives</span>
                 </div>
                 <button 
                   (click)="navigateToReservations()"
                   class="text-orange-600 hover:text-orange-700 transition-colors">
-                  <i class="fas fa-arrow-right text-lg"></i>
+                  <i class="fas fa-arrow-right text-sm"></i>
                 </button>
               </div>
             </div>
@@ -86,25 +86,25 @@
         </div>
 
         <!-- Clients Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300 group">
           <div class="flex items-center justify-between">
             <div class="w-full">
-              <div class="flex items-center space-x-3 mb-3">
-                <div class="p-3 bg-purple-100 rounded-xl group-hover:scale-110 transition-transform">
-                  <i class="fas fa-users text-purple-600 text-2xl"></i>
+              <div class="flex items-center space-x-2 mb-2">
+                <div class="p-2 bg-purple-100 rounded-lg group-hover:scale-110 transition-transform">
+                  <i class="fas fa-users text-purple-600 text-lg"></i>
                 </div>
-                <span class="text-gray-700 text-sm font-medium">Clients</span>
+                <span class="text-gray-700 text-xs font-medium">Clients</span>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ totalClients | number }}</div>
+              <div class="text-xl font-bold text-gray-900 mb-1">{{ totalClients | number }}</div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1">
-                  <i class="fas fa-user-plus text-purple-600 text-sm"></i>
-                  <span class="text-purple-600 text-sm">{{ getNewClientsThisMonth() }} nouveaux</span>
+                  <i class="fas fa-user-plus text-purple-600 text-xs"></i>
+                  <span class="text-purple-600 text-xs">{{ getNewClientsThisMonth() }} nouveaux</span>
                 </div>
                 <button 
                   (click)="navigateToClients()"
                   class="text-purple-600 hover:text-purple-700 transition-colors">
-                  <i class="fas fa-arrow-right text-lg"></i>
+                  <i class="fas fa-arrow-right text-sm"></i>
                 </button>
               </div>
             </div>
@@ -112,25 +112,25 @@
         </div>
 
         <!-- Revenue Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300 group">
           <div class="flex items-center justify-between">
             <div class="w-full">
-              <div class="flex items-center space-x-3 mb-3">
-                <div class="p-3 bg-blue-100 rounded-xl group-hover:scale-110 transition-transform">
-                  <i class="fas fa-euro-sign text-blue-600 text-2xl"></i>
+              <div class="flex items-center space-x-2 mb-2">
+                <div class="p-2 bg-blue-100 rounded-lg group-hover:scale-110 transition-transform">
+                  <i class="fas fa-euro-sign text-blue-600 text-lg"></i>
                 </div>
-                <span class="text-gray-700 text-sm font-medium">Revenus ce mois</span>
+                <span class="text-gray-700 text-xs font-medium">Revenus ce mois</span>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ getMonthlyRevenue() | currency:' DZD ':'symbol':'1.0-0' }}</div>
+              <div class="text-xl font-bold text-gray-900 mb-1">{{ getMonthlyRevenue() | currency:' DZD ':'symbol':'1.0-0' }}</div>
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1">
-                  <i class="fas fa-chart-line text-blue-600 text-sm"></i>
-                  <span class="text-blue-600 text-sm">{{ getRevenueGrowth() }}% ce mois</span>
+                  <i class="fas fa-chart-line text-blue-600 text-xs"></i>
+                  <span class="text-blue-600 text-xs">{{ getRevenueGrowth() }}% ce mois</span>
                 </div>
                 <button 
                   (click)="generateReport()"
                   class="text-blue-600 hover:text-blue-700 transition-colors">
-                  <i class="fas fa-chart-bar text-lg"></i>
+                  <i class="fas fa-chart-bar text-sm"></i>
                 </button>
               </div>
             </div>
@@ -139,40 +139,40 @@
       </div>
 
       <!-- Secondary Information -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         
         <!-- Recent Articles -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
           <!-- Header -->
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-              <i class="fas fa-star mr-2 text-yellow-500"></i>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center">
+              <i class="fas fa-star mr-1 text-yellow-500 text-sm"></i>
               Articles récents
             </h3>
             <button 
               (click)="navigateToArticles()"
-              class="text-blue-600 text-sm hover:text-blue-700 transition-colors flex items-center">
+              class="text-blue-600 text-xs hover:text-blue-700 transition-colors flex items-center">
               Voir tout
-              <i class="fas fa-arrow-right ml-1 text-sm"></i>
+              <i class="fas fa-arrow-right ml-1 text-xs"></i>
             </button>
           </div>
         
           <!-- Articles List -->
-          <div class="space-y-4">
-            <div *ngFor="let article of getRecentArticles()" class="flex items-center space-x-3">
-              <div class="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <i class="fas {{ getArticleIcon(article.categoryId) }} text-gray-700"></i>
+          <div class="space-y-3">
+            <div *ngFor="let article of getRecentArticles()" class="flex items-center space-x-2">
+              <div class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
+                <i class="fas {{ getArticleIcon(article.categoryId) }} text-gray-700 text-xs"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-gray-900 font-medium truncate">{{ article.name }}</p>
-                <div class="flex items-center space-x-2">
-                  <p class="text-gray-600 text-sm">{{ getCategoryName(article.categoryId) }}</p>
-                  <span class="text-gray-400">•</span>
-                  <p class="text-green-600 text-sm">{{ article.quantityTotal }} en stock</p>
+                <p class="text-gray-900 font-medium truncate text-sm">{{ article.name }}</p>
+                <div class="flex items-center space-x-1">
+                  <p class="text-gray-600 text-xs">{{ getCategoryName(article.categoryId) }}</p>
+                  <span class="text-gray-400 text-xs">•</span>
+                  <p class="text-green-600 text-xs">{{ article.quantityTotal }} en stock</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-gray-900 font-medium">
+                <p class="text-gray-900 font-medium text-sm">
                   {{ article.pricePerDay | currency:' DZD ':'symbol':'1.2-2' }}
                 </p>
                 <p class="text-gray-500 text-xs">/jour</p>
@@ -180,12 +180,12 @@
             </div>
         
             <!-- Empty State -->
-            <div *ngIf="getRecentArticles().length === 0" class="text-center py-6">
-              <i class="fas fa-boxes text-4xl text-gray-400 mb-2"></i>
-              <p class="text-gray-500">Aucun article disponible</p>
+            <div *ngIf="getRecentArticles().length === 0" class="text-center py-4">
+              <i class="fas fa-boxes text-2xl text-gray-400 mb-1"></i>
+              <p class="text-gray-500 text-sm">Aucun article disponible</p>
               <button 
                 (click)="navigateToArticles()"
-                class="mt-2 text-blue-600 text-sm hover:text-blue-700 transition-colors">
+                class="mt-1 text-blue-600 text-xs hover:text-blue-700 transition-colors">
                 Ajouter un article
               </button>
             </div>
@@ -193,46 +193,46 @@
         </div>
         
         <!-- Recent Reservations -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-              <i class="fas fa-history mr-2 text-gray-600"></i>
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-900 flex items-center">
+              <i class="fas fa-history mr-1 text-gray-600 text-sm"></i>
               Réservations récentes
             </h3>
             <button 
               (click)="navigateToReservations()"
-              class="text-blue-600 text-sm hover:text-blue-700 transition-colors flex items-center">
+              class="text-blue-600 text-xs hover:text-blue-700 transition-colors flex items-center">
               Voir tout
-              <i class="fas fa-arrow-right ml-1 text-sm"></i>
+              <i class="fas fa-arrow-right ml-1 text-xs"></i>
             </button>
           </div>
-          <div class="space-y-4 custom-scrollbar">
-            <div *ngFor="let reservation of getRecentReservations()" class="flex items-center space-x-3">
-              <div class="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-calendar text-gray-700"></i>
+          <div class="space-y-3 custom-scrollbar">
+            <div *ngFor="let reservation of getRecentReservations()" class="flex items-center space-x-2">
+              <div class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
+                <i class="fas fa-calendar text-gray-700 text-xs"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-gray-900 font-medium truncate">{{ getUserName(reservation.clientId) }}</p>
-                <div class="flex items-center space-x-2">
-                  <p class="text-gray-600 text-sm">{{ reservation.startDate | date:'shortDate' }}</p>
+                <p class="text-gray-900 font-medium truncate text-sm">{{ getUserName(reservation.clientId) }}</p>
+                <div class="flex items-center space-x-1">
+                  <p class="text-gray-600 text-xs">{{ reservation.startDate | date:'shortDate' }}</p>
                   <i class="fas fa-arrow-right text-gray-400 text-xs"></i>
-                  <p class="text-gray-600 text-sm">{{ reservation.endDate | date:'shortDate' }}</p>
+                  <p class="text-gray-600 text-xs">{{ reservation.endDate | date:'shortDate' }}</p>
                 </div>
               </div>
               <div class="text-right">
-                <span class="px-2 py-1 text-xs rounded-full font-medium" 
+                <span class="px-1 py-0.5 text-xs rounded font-medium" 
                       [ngClass]="getStatusClass(reservation.status)">
                   {{ getStatusLabel(reservation.status) }}
                 </span>
-                <p class="text-gray-900 font-medium mt-1">{{ reservation.totalPrice | currency:' DZD ':'symbol':'1.2-2' }}</p>
+                <p class="text-gray-900 font-medium text-xs mt-0.5">{{ reservation.totalPrice | currency:' DZD ':'symbol':'1.2-2' }}</p>
               </div>
             </div>
-            <div *ngIf="getRecentReservations().length === 0" class="text-center py-6">
-              <i class="fas fa-calendar-alt text-4xl text-gray-400 mb-2"></i>
-              <p class="text-gray-500">Aucune réservation</p>
+            <div *ngIf="getRecentReservations().length === 0" class="text-center py-4">
+              <i class="fas fa-calendar-alt text-2xl text-gray-400 mb-1"></i>
+              <p class="text-gray-500 text-sm">Aucune réservation</p>
               <button 
                 (click)="navigateToNewReservation()"
-                class="mt-2 text-blue-600 text-sm hover:text-blue-700 transition-colors">
+                class="mt-1 text-blue-600 text-xs hover:text-blue-700 transition-colors">
                 Créer une réservation
               </button>
             </div>
@@ -241,46 +241,46 @@
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-white border border-gray-200 rounded-2xl p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <i class="fas fa-bolt mr-2 text-yellow-500"></i>
+      <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+          <i class="fas fa-bolt mr-1 text-yellow-500 text-sm"></i>
           Actions rapides
         </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button 
             (click)="navigateToNewReservation()"
-            class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
-            <div class="p-3 bg-blue-100 rounded-lg mb-2 group-hover:scale-110 transition-transform">
-              <i class="fas fa-plus-circle text-blue-600"></i>
+            class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+            <div class="p-2 bg-blue-100 rounded-md mb-1 group-hover:scale-110 transition-transform">
+              <i class="fas fa-plus-circle text-blue-600 text-sm"></i>
             </div>
-            <span class="text-gray-700 text-sm font-medium">Nouvelle réservation</span>
+            <span class="text-gray-700 text-xs font-medium text-center">Nouvelle réservation</span>
           </button>
           
           <button 
             (click)="navigateToAddArticle()"
-            class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
-            <div class="p-3 bg-green-100 rounded-lg mb-2 group-hover:scale-110 transition-transform">
-              <i class="fas fa-box text-green-600"></i>
+            class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+            <div class="p-2 bg-green-100 rounded-md mb-1 group-hover:scale-110 transition-transform">
+              <i class="fas fa-box text-green-600 text-sm"></i>
             </div>
-            <span class="text-gray-700 text-sm font-medium">Ajouter article</span>
+            <span class="text-gray-700 text-xs font-medium">Ajouter article</span>
           </button>
           
           <button 
             (click)="navigateToAddUser()"
-            class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
-            <div class="p-3 bg-purple-100 rounded-lg mb-2 group-hover:scale-110 transition-transform">
-              <i class="fas fa-user-plus text-purple-600"></i>
+            class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+            <div class="p-2 bg-purple-100 rounded-md mb-1 group-hover:scale-110 transition-transform">
+              <i class="fas fa-user-plus text-purple-600 text-sm"></i>
             </div>
-            <span class="text-gray-700 text-sm font-medium">Nouveau client</span>
+            <span class="text-gray-700 text-xs font-medium">Nouveau client</span>
           </button>
           
           <button 
             (click)="generateReport()"
-            class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
-            <div class="p-3 bg-orange-100 rounded-lg mb-2 group-hover:scale-110 transition-transform">
-              <i class="fas fa-chart-pie text-orange-600"></i>
+            class="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+            <div class="p-2 bg-orange-100 rounded-md mb-1 group-hover:scale-110 transition-transform">
+              <i class="fas fa-chart-pie text-orange-600 text-sm"></i>
             </div>
-            <span class="text-gray-700 text-sm font-medium">Rapport</span>
+            <span class="text-gray-700 text-xs font-medium">Rapport</span>
           </button>
         </div>
       </div>

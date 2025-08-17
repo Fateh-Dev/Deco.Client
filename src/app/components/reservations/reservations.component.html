@@ -1,201 +1,147 @@
-<div class="mx-auto p-5 select-none">
-  <!-- Show create reservation form if in create mode -->
-  
-  <!-- Show reservations list if not in create mode -->
-  <div *ngIf="!showCreateForm">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-slate-700 text-2xl font-semibold">Liste des Réservations</h2>
-      <button 
-       [routerLink]="['/reservations/new']"
-        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-      >
-        <i class="fas fa-plus mr-2"></i>
-        Nouvelle Réservation
-      </button>
-    </div>
-    
-    <!-- Error Message -->
-    <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-      {{ error }}
-      <button type="button" class="ml-3 px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-100 transition-colors" (click)="loadReservations()">
-        <i class="fas fa-sync-alt mr-1"></i> Réessayer
+<div class="container mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-bold text-gray-800">Liste des Réservations</h2>
+    <button [routerLink]="['/reservations/new']"
+            class="bg-blue-600 text-white px-4 py-2 rounded-md text-base hover:bg-blue-700 transition-colors flex items-center">
+      <i class="fas fa-plus mr-2 text-sm"></i>Nouvelle Réservation
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm flex justify-between items-center">
+    <span>{{ error }}</span>
+    <button type="button" class="ml-3 px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-100 transition" (click)="loadReservations()">
+      <i class="fas fa-sync-alt mr-1"></i> Réessayer
+    </button>
+  </div>
+
+  <!-- Search + Filters -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <!-- Search -->
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <i class="fas fa-search text-gray-400 text-sm"></i>
+        </div>
+        <input type="text" [(ngModel)]="searchTerm" (input)="filterReservations()"
+               class="block w-full pl-10 pr-4 py-2.5 rounded-md border border-gray-300 text-sm placeholder-gray-400 
+                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+               placeholder="Rechercher une réservation...">
+        <button *ngIf="searchTerm" (click)="clearSearch()"
+                class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500">
+          <i class="fas fa-times text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Filter toggle -->
+      <button (click)="showFilters = !showFilters"
+              class="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium hover:bg-gray-50 
+                     focus:ring-2 focus:ring-blue-500 flex items-center">
+        <i class="fas {{ showFilters ? 'fa-filter-circle-xmark' : 'fa-filter' }} mr-2 text-sm"></i>
+        {{ showFilters ? 'Masquer' : 'Filtres' }}
       </button>
     </div>
 
     <!-- Filters -->
-    <!-- Enhanced Search and Filter Section -->
-    <div class="mb-6">
-      <!-- Main Search and Filter Toggle Row -->
-      <div class="flex items-center gap-4 mb-4">
-        <!-- Enhanced Search Input -->
-        <div class="relative flex-1">
-          <!-- Search Icon -->
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-            <i class="fas fa-search text-gray-400 transition-colors duration-200"></i>
-          </div>
-
-          <!-- Search Input with Enhanced Styling -->
-          <input type="text" 
-                 [(ngModel)]="searchTerm" 
-                 (input)="filterReservations()" 
-                 class="block w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 bg-white shadow-sm text-sm 
-                        placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                        transition-all duration-200 hover:shadow-md hover:border-gray-400"
-                 placeholder="🔍 Rechercher une réservation...">
-
-          <!-- Clear Search Button -->
-          <button *ngIf="searchTerm" 
-                  (click)="clearSearch()" 
-                  class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500 
-                         transition-all duration-200 hover:scale-110 focus:outline-none focus:text-red-500">
-            <i class="fas fa-times text-sm"></i>
+    <div *ngIf="showFilters" class="mt-4">
+      <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <span class="font-medium text-gray-700 flex items-center">
+            <i class="fas fa-tags mr-2 text-blue-500"></i>Statut :
+          </span>
+          <button (click)="selectStatus('all')" 
+                  class="px-3 py-1 rounded-md text-sm"
+                  [class]="selectedStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+            Tous
+          </button>
+          <button (click)="selectStatus('EnAttente')" 
+                  class="px-3 py-1 rounded-md text-sm"
+                  [class]="selectedStatus === 'EnAttente' ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+            En Attente
+          </button>
+          <button (click)="selectStatus('Confirmee')" 
+                  class="px-3 py-1 rounded-md text-sm"
+                  [class]="selectedStatus === 'Confirmee' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+            Confirmée
+          </button>
+          <button (click)="selectStatus('Annulee')" 
+                  class="px-3 py-1 rounded-md text-sm"
+                  [class]="selectedStatus === 'Annulee' ? 'bg-red-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+            Annulée
+          </button>
+          <button (click)="selectStatus('Terminee')" 
+                  class="px-3 py-1 rounded-md text-sm"
+                  [class]="selectedStatus === 'Terminee' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+            Terminée
           </button>
         </div>
-
-        <!-- Enhanced Filter Toggle Button -->
-        <button (click)="showFilters = !showFilters" 
-                class="flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm 
-                       text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                       transition-all duration-200">
-          <i class="fas {{ showFilters ? 'fa-filter-circle-xmark' : 'fa-filter' }} mr-2 transition-transform duration-200 {{ showFilters ? 'rotate-180' : '' }}"></i>
-          {{ showFilters ? 'Masquer les filtres' : 'Filtrer par statut' }}
-        </button>
       </div>
+    </div>
+  </div>
 
-      <!-- Compact Status Filter (Collapsible) -->
-      <div *ngIf="showFilters" class="mb-3">
-        <div class="relative rounded-lg p-4 bg-gray-50 border border-gray-200">
-          <div class="flex items-center gap-4 flex-wrap">
-            <!-- Filter Label -->
-            <div class="flex items-center text-sm font-medium text-gray-700">
-              <i class="fas fa-tags mr-2 text-blue-500"></i>
-              Statut :
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-8 text-gray-500 text-sm">
+    Chargement des réservations...
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading && filteredReservations.length === 0" class="text-center py-8 text-gray-500 text-sm">
+    Aucune réservation trouvée
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && filteredReservations.length > 0" class="w-full overflow-x-auto bg-white rounded-lg shadow">
+    <table class="w-full border-collapse text-sm">
+      <thead>
+        <tr>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">ID</th>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Client</th>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Début</th>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Fin</th>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Montant</th>
+          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Statut</th>
+          <th class="px-4 py-3 text-center bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let reservation of filteredReservations" class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 border-b">#{{ reservation?.id }}</td>
+          <td class="px-4 py-3 border-b">
+            <div>
+              <div class="font-medium">{{ reservation?.client?.name || 'N/A' }}</div>
+              <div class="text-xs text-gray-500">{{ reservation?.client?.phone || '' }}</div>
             </div>
-
-            <!-- Status Filter Buttons -->
-            <div class="flex items-center gap-2 flex-wrap">
-              <!-- All Status Button -->
-              <button (click)="selectStatus('all')"
-                      class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                      [class]="selectedStatus === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'">
-                <i class="fas fa-globe mr-2 text-xs"></i>
-                Tous
-              </button>
-
-              <!-- Individual Status Buttons -->
-              <button (click)="selectStatus('EnAttente')"
-                      class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                      [class]="selectedStatus === 'EnAttente' ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'">
-                <i class="fas fa-clock mr-2 text-xs"></i>
-                En Attente
-              </button>
-
-              <button (click)="selectStatus('Confirmee')"
-                      class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                      [class]="selectedStatus === 'Confirmee' ? 'bg-green-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'">
-                <i class="fas fa-check-circle mr-2 text-xs"></i>
-                Confirmée
-              </button>
-
-              <button (click)="selectStatus('Annulee')"
-                      class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                      [class]="selectedStatus === 'Annulee' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'">
-                <i class="fas fa-times-circle mr-2 text-xs"></i>
-                Annulée
-              </button>
-
-              <button (click)="selectStatus('Terminee')"
-                      class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                      [class]="selectedStatus === 'Terminee' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'">
-                <i class="fas fa-check-double mr-2 text-xs"></i>
-                Terminée
-              </button>
-            </div>
-          </div>
-
-          <!-- Selected Filter Info -->
-          <div class="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600" *ngIf="selectedStatus !== 'all'">
-            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
-            Filtrage actif : <span class="font-medium text-gray-800">{{ getStatusLabel(selectedStatus) }}</span>
-            <button (click)="selectStatus('all')" 
-                    class="ml-2 text-xs bg-red-50 text-red-600 px-2 py-1 rounded-md hover:bg-red-100 
-                           transition-colors duration-200">
-              <i class="fas fa-times mr-1"></i>
-              Effacer
+          </td>
+          <td class="px-4 py-3 border-b">{{ reservation?.startDate | date:'dd/MM/yyyy' }}</td>
+          <td class="px-4 py-3 border-b">{{ reservation?.endDate | date:'dd/MM/yyyy' }}</td>
+          <td class="px-4 py-3 border-b font-mono font-medium">{{ reservation?.totalPrice | currency:'DZD ':'symbol':'1.2-2' }}</td>
+          <td class="px-4 py-3 border-b">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize" [ngClass]="getStatusClass(reservation.status)">
+              {{ getStatusText(reservation.status) }}
+            </span>
+          </td>
+          <td class="px-4 py-3 border-b text-center">
+            <button class="w-7 h-7 flex items-center justify-center bg-blue-500 text-white rounded hover:bg-blue-600" 
+                    [routerLink]="['/reservations', reservation.id]">
+              <i class="fas fa-eye text-sm"></i>
             </button>
-          </div>
-        </div>
-      </div>
-    </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="text-center py-10 text-gray-500 text-lg">
-      <p>Chargement des réservations...</p>
-    </div>
-
-    <!-- No Results -->
-    <div *ngIf="!loading && filteredReservations.length === 0" class="text-center py-10 text-gray-500 text-lg">
-      <p>Aucune réservation trouvée</p>
-    </div>
-
-    <!-- Reservations Table -->
-    <div *ngIf="!loading && filteredReservations.length > 0" class="w-full overflow-x-auto mb-6 bg-white rounded-lg shadow-md">
-      <table class="w-full border-collapse text-sm">
-        <thead>
-          <tr>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">ID</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Client</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Date de début</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Date de fin</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Montant total</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Statut</th>
-            <th class="px-4 py-4 text-left bg-gray-50 font-semibold text-slate-700 uppercase text-xs tracking-wide border-b border-gray-200">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let reservation of filteredReservations" class="hover:bg-gray-50 transition-colors">
-            <td class="px-4 py-4 border-b border-gray-100">#{{ reservation?.id }}</td>
-            <td class="px-4 py-4 border-b border-gray-100">
-              <div>
-                <div class="font-medium text-slate-700">{{ reservation?.client?.name || 'N/A' }}</div>
-                <div class="text-xs text-gray-500 mt-1" *ngIf="reservation?.client?.phone">{{ reservation?.client?.phone }}</div>
-              </div>
-            </td>
-            <td class="px-4 py-4 border-b border-gray-100">{{ reservation?.startDate | date:'dd/MM/yyyy' }}</td>
-            <td class="px-4 py-4 border-b border-gray-100">{{ reservation?.endDate | date:'dd/MM/yyyy' }}</td>
-            <td class="px-4 py-4 border-b border-gray-100 font-mono font-medium text-slate-700">{{ reservation?.totalPrice | currency:'DZD ':'symbol':'1.2-2' }}</td>
-            <td class="px-4 py-4 border-b border-gray-100">
-              <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium capitalize text-center min-w-20" 
-                    [ngClass]="getStatusClass(reservation.status)">
-                {{ getStatusText(reservation.status) }}
-              </span>
-            </td>
-            <td class="px-4 py-4 border-b border-gray-100 text-center">
-              <button class="inline-flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:-translate-y-0.5" 
-                      [routerLink]="['/reservations', reservation.id]" 
-                      title="Voir les détails">
-                <i class="fas fa-eye text-sm"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div *ngIf="filteredReservations.length > 0" class="flex justify-center items-center gap-4 mt-6">
-      <button (click)="previousPage()" 
-              [disabled]="currentPage === 1"
-              class="px-4 py-2 bg-blue-500 text-white rounded text-sm transition-colors hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
-        Précédent
-      </button>
-      <span class="text-sm text-gray-700">Page {{ currentPage }}</span>
-      <button (click)="nextPage()" 
-              [disabled]="filteredReservations.length < itemsPerPage"
-              class="px-4 py-2 bg-blue-500 text-white rounded text-sm transition-colors hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
-        Suivant
-      </button>
-    </div>
+  <!-- Pagination -->
+  <div *ngIf="filteredReservations.length > 0" class="flex justify-center items-center gap-3 mt-4 text-sm">
+    <button (click)="previousPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1.5 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+      Précédent
+    </button>
+    <span>Page {{ currentPage }}</span>
+    <button (click)="nextPage()" [disabled]="filteredReservations.length < itemsPerPage"
+            class="px-3 py-1.5 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+      Suivant
+    </button>
   </div>
 </div>

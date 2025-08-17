@@ -19,6 +19,7 @@ export class AppComponent {
 
   navItems: NavItem[] = [
     { label: 'Accueil', route: '/home' },
+    { label: 'Calendrier', route: '/calendar' },
     { label: 'Articles', route: '/articles' },
     { label: 'Réservations', route: '/reservations' },
     { label: 'Clients', route: '/clients' },

@@ -4,6 +4,7 @@ import { HomePageComponent } from './components/home-page/home-page.component';
 import { ReservationsComponent } from './components/reservations/reservations.component'; 
 import { ClientListComponent } from './components/client-list/client-list.component';
 import { CreateReservationComponent } from './components/reservations/create-reservation/create-reservation.component';
+import { CalendarComponent } from './components/calendar/calendar.component';
 export const routes: Routes = [
   { path: '', component: HomePageComponent },
   { path: 'home', component: HomePageComponent },
@@ -11,5 +12,6 @@ export const routes: Routes = [
   { path: 'reservations', component: ReservationsComponent }, // Temporary - replace with actual reservations component
   { path: 'reservations/new', component: CreateReservationComponent }, // Temporary - replace with actual reservations component
   { path: 'clients', component: ClientListComponent }, // Temporary - replace with actual clients component
+  { path: 'calendar', component: CalendarComponent }, // Temporary - replace with actual calendar component
   { path: '**', redirectTo: '' }
 ];

@@ -1,0 +1,150 @@
+<div class="min-h-screen bg-gray-50 p-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Calendrier des Locations</h1>
+      <div class="flex items-center space-x-2">
+        <button (click)="goToPreviousMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="text-lg font-semibold px-4">{{ currentMonth.monthName }} {{ currentMonth.year }}</div>
+        <button (click)="goToNextMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button (click)="goToToday()" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Aujourd'hui</button>
+      </div>
+    </div>
+  
+    <!-- Loading/Error -->
+    <div *ngIf="loading" class="flex justify-center py-20">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded p-4 mb-6 flex items-center">
+      <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+      <span class="text-red-700">{{ error }}</span>
+      <button (click)="loadData()" class="ml-auto px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Réessayer</button>
+    </div>
+  
+    <!-- Calendar -->
+    <div *ngIf="!loading" class="bg-white rounded border shadow-sm mb-6">
+      <!-- Days Header -->
+      <div class="grid grid-cols-7 bg-gray-50 border-b">
+        <div *ngFor="let day of weekDays" class="p-2 text-center text-sm font-medium text-gray-700 border-r last:border-r-0">{{ day }}</div>
+      </div>
+      <!-- Calendar Grid -->
+      <div class="grid grid-cols-7">
+        <div *ngFor="let day of currentMonth.days; trackBy: trackByDate"
+             class="min-h-[80px] border-r border-b last:border-r-0 p-1 relative group cursor-pointer hover:bg-gray-50"
+             [ngClass]="{'bg-gray-50': !day.isCurrentMonth, 'bg-blue-50': day.isToday}"
+             (click)="selectDay(day)">
+          <div class="flex justify-between">
+            <span class="text-sm" [ngClass]="{'text-gray-400': !day.isCurrentMonth, 'text-blue-600 font-bold': day.isToday}">{{ day.day }}</span>
+            <span *ngIf="day.revenue > 0" class="text-xs px-1 py-0.5 rounded bg-green-100 text-green-700">{{ formatCurrency(day.revenue) }}</span>
+          </div>
+          <div class="mt-1 space-y-0.5">
+            <div *ngFor="let reservation of getVisibleReservations(day); let i = index"
+                 class="text-xs p-0.5 rounded truncate border cursor-pointer"
+                 [ngClass]="getReservationStatusClass(reservation.status)"
+                 (click)="viewReservation(reservation, $event)">
+              {{ getClientName(reservation.clientId) }}
+            </div>
+            <div *ngIf="hasHiddenReservations(day)" class="text-xs text-gray-500 text-center cursor-pointer" (click)="selectDay(day)">
+              +{{ getHiddenReservationsCount(day) }}
+            </div>
+          </div>
+          <button *ngIf="day.isCurrentMonth && !day.hasReservations" 
+                  (click)="addReservation(day.date, $event)"
+                  class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white bg-opacity-90 text-xs text-blue-600">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Quick Stats & Actions -->
+    <div *ngIf="!loading" class="bg-white border rounded p-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+        <div class="text-center">
+          <div class="font-semibold text-lg">{{ getMonthlyStats().totalReservations }}</div>
+          <div class="text-gray-600">Réservations</div>
+        </div>
+        <div class="text-center">
+          <div class="font-semibold text-lg text-green-600">{{ formatCurrency(getMonthlyStats().totalRevenue) }}</div>
+          <div class="text-gray-600">Revenus</div>
+        </div>
+        <div class="text-center">
+          <div class="font-semibold text-lg">{{ getMonthlyStats().occupiedDays }}</div>
+          <div class="text-gray-600">Jours occupés</div>
+        </div>
+        <div class="text-center">
+          <div class="font-semibold text-lg text-blue-600">{{ getMonthlyStats().occupancyRate }}%</div>
+          <div class="text-gray-600">Occupation</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <button (click)="navigateToNewReservation()" class="p-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 text-sm">
+          <i class="fas fa-plus"></i> Nouvelle
+        </button>
+        <button (click)="exportCalendar()" class="p-2 bg-green-50 text-green-700 rounded hover:bg-green-100 text-sm">
+          <i class="fas fa-download"></i> Export
+        </button>
+        <button (click)="generateMonthlyReport()" class="p-2 bg-purple-50 text-purple-700 rounded hover:bg-purple-100 text-sm">
+          <i class="fas fa-chart-pie"></i> Rapport
+        </button>
+        <button (click)="refreshCalendar()" class="p-2 bg-gray-50 text-gray-700 rounded hover:bg-gray-100 text-sm">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Reservation Modal -->
+  <div *ngIf="selectedReservation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeReservationModal()">
+    <div class="bg-white rounded p-6 max-w-sm w-full" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold">Réservation</h3>
+        <button (click)="closeReservationModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="space-y-2 text-sm mb-4">
+        <div><strong>Client:</strong> {{ getClientName(selectedReservation.clientId) }}</div>
+        <div><strong>Période:</strong> {{ formatDate(selectedReservation.startDate) }} - {{ formatDate(selectedReservation.endDate) }}</div>
+        <div><strong>Prix:</strong> {{ formatCurrency(selectedReservation.totalPrice) }}</div>
+        <div><strong>Statut:</strong> <span class="px-2 py-1 rounded text-xs" [ngClass]="getStatusClass(selectedReservation.status)">{{ getStatusLabel(selectedReservation.status) }}</span></div>
+      </div>
+      <div class="flex space-x-2">
+        <button (click)="editReservation(selectedReservation)" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Modifier</button>
+        <button (click)="closeReservationModal()" class="flex-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Fermer</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Day Modal -->
+  <div *ngIf="showDayModal && selectedDay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeDayModal()">
+    <div class="bg-white rounded p-6 max-w-md w-full" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold">{{ selectedDay.day }} {{ currentMonth.monthName }}</h3>
+        <button (click)="closeDayModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+        <div class="bg-blue-50 p-3 rounded">
+          <div class="text-xl font-bold text-blue-600">{{ selectedDay.reservations.length }}</div>
+          <div class="text-sm">Réservations</div>
+        </div>
+        <div class="bg-green-50 p-3 rounded">
+          <div class="text-xl font-bold text-green-600">{{ formatCurrency(selectedDay.revenue) }}</div>
+          <div class="text-sm">Revenus</div>
+        </div>
+      </div>
+      <div class="space-y-2 max-h-32 overflow-y-auto mb-4">
+        <div *ngFor="let reservation of selectedDay.reservations" 
+             class="border rounded p-2 hover:bg-gray-50 cursor-pointer text-sm flex justify-between"
+             (click)="viewReservation(reservation)">
+          <span>{{ getClientName(reservation.clientId) }}</span>
+          <span>{{ formatCurrency(reservation.totalPrice) }}</span>
+        </div>
+      </div>
+      <div class="flex space-x-2">
+        <button (click)="addReservation(selectedDay.date)" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouvelle</button>
+        <button (click)="closeDayModal()" class="flex-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Fermer</button>
+      </div>
+    </div>
+  </div>

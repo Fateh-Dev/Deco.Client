@@ -156,82 +156,86 @@
       </div>
     </div>
 
-    <!-- Articles Grid -->
-    <div *ngIf="!loading && filteredArticles.length > 0" class="space-y-8">
-      <ng-container *ngFor="let category of getUniqueCategories(filteredArticles)">
-        <div>
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ category?.name || 'Sans catégorie' }}</h2>
-          <div class="grid gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <ng-container *ngFor="let article of getArticlesByCategory(filteredArticles, category?.id)">
-              <div
-                class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
+   <!-- Articles Grid with Compact Cards -->
+<div *ngIf="!loading && filteredArticles.length > 0" class="space-y-6">
+  <ng-container *ngFor="let category of getUniqueCategories(filteredArticles)">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">{{ category?.name || 'Sans catégorie' }}</h2>
+      <div class="grid gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6">
+        <ng-container *ngFor="let article of getArticlesByCategory(filteredArticles, category?.id)">
+          <div
+            class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
 
-                <!-- Image -->
-                <div class="h-48 bg-gray-100 relative flex-shrink-0">
-                  <img [src]="article.imageUrl || 'https://placehold.co/400x200?text=Image+non+disponible'"
-                    [alt]="article.name" class="w-full h-full object-cover"
-                    onerror="this.src='https://placehold.co/400x200?text=Image+non+disponible'">
+           <!-- Compact Image -->
+<div class="h-32 bg-gray-100 relative flex-shrink-0">
+  <img [src]="article.imageUrl || 'https://placehold.co/300x150?text=Image+non+disponible'"
+       [alt]="article.name"
+       class="w-full h-full object-cover"
+       loading="lazy"
+       onerror="this.src='https://placehold.co/300x150?text=Image+non+disponible'">
 
-                  <!-- Status Badge -->
-                  <div class="absolute top-3 right-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium" [class.bg-green-100]="article.isActive"
-                      [class.text-green-800]="article.isActive" [class.bg-red-100]="!article.isActive"
-                      [class.text-red-800]="!article.isActive">
-                      {{ article.isActive ? 'Actif' : 'Inactif' }}
+  <!-- Compact Status Badge -->
+  <div class="absolute top-2 right-2">
+    <span class="px-1.5 py-0.5 rounded-full text-xs font-medium" 
+          [class.bg-green-100]="article.isActive"
+          [class.text-green-800]="article.isActive"
+          [class.bg-red-100]="!article.isActive"
+          [class.text-red-800]="!article.isActive">
+      {{ article.isActive ? 'Actif' : 'Inactif' }}
+    </span>
+  </div>
+</div>
+
+
+            <!-- Compact Card Content -->
+            <div class="p-2 flex flex-col flex-grow">
+              <div class="flex-grow">
+                <!-- Article Name -->
+                <h3 class="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">{{ article.name }}</h3>
+
+                <!-- Compact Description -->
+                <p *ngIf="article.description" class="text-xs text-gray-600 mb-2 line-clamp-1">
+                  {{ article.description }}
+                </p>
+
+                <!-- Compact Article Details -->
+                <div class="space-y-1 text-xs text-gray-600 mb-3">
+                  <div class="flex justify-between items-center">
+                    <span class="truncate">Prix/jour:</span>
+                    <span class="font-medium text-green-600 text-xs">
+                      {{ article.pricePerDay ? (article.pricePerDay | currency:' DZD ':'symbol':'1.0-0') : 'Sur demande' }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="truncate">Stock:</span>
+                    <span class="font-medium text-xs" [class.text-red-600]="article.quantityTotal === 0"
+                      [class.text-green-600]="article.quantityTotal > 0">
+                      {{ article.quantityTotal }}
                     </span>
                   </div>
                 </div>
 
-                <!-- Card Content -->
-                <div class="p-3 flex flex-col flex-grow">
-                  <div class="flex-grow">
-                    <!-- Article Name -->
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ article.name }}</h3>
-
-                    <!-- Description -->
-                    <p *ngIf="article.description" class="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {{ article.description }}
-                    </p>
-
-                    <!-- Article Details -->
-                    <div class="space-y-2 text-sm text-gray-600 mb-4">
-                      <div class="flex justify-between items-center">
-                        <span>Prix par jour:</span>
-                        <span class="font-medium text-green-600">
-                          {{ article.pricePerDay ? (article.pricePerDay | currency:' DZD ':'symbol':'1.2-2') : 'Sur
-                          demande' }}
-                        </span>
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <span>Stock disponible:</span>
-                        <span class="font-medium" [class.text-red-600]="article.quantityTotal === 0"
-                          [class.text-green-600]="article.quantityTotal > 0">
-                          {{ article.quantityTotal }} unité(s)
-                        </span>
-                      </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="mt-auto">
-                      <div class="flex space-x-2">
-                        <button (click)="editArticle(article)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 
-                                 font-medium py-2 px-3 rounded-md text-sm transition-colors duration-200">
-                          Modifier
-                        </button>
-                        <button (click)="openDeleteModal(article); $event.stopPropagation()" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 
-                                 font-medium py-2 px-3 rounded-md text-sm transition-colors duration-200">
-                          Supprimer
-                        </button>
-                      </div>
-                    </div>
+                <!-- Compact Action Buttons -->
+                <div class="mt-auto">
+                  <div class="flex space-x-1">
+                    <button (click)="editArticle(article)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 
+                             font-medium py-1.5 px-2 rounded text-xs transition-colors duration-200">
+                      Modifier
+                    </button>
+                    <button (click)="openDeleteModal(article); $event.stopPropagation()" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 
+                             font-medium py-1.5 px-2 rounded text-xs transition-colors duration-200">
+                      Supprimer
+                    </button>
                   </div>
                 </div>
               </div>
-            </ng-container>
+            </div>
           </div>
-        </div>
-      </ng-container>
+        </ng-container>
+      </div>
     </div>
+  </ng-container>
+</div>
   </div>
 
   <!-- Delete Confirmation Modal -->
