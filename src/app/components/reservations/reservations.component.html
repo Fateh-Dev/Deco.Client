@@ -1,78 +1,112 @@
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-3 py-4">
   <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex justify-between items-center mb-4">
     <h2 class="text-xl font-bold text-gray-800">Liste des Réservations</h2>
-    <button [routerLink]="['/reservations/new']"
-            class="bg-blue-600 text-white px-4 py-2 rounded-md text-base hover:bg-blue-700 transition-colors flex items-center">
-      <i class="fas fa-plus mr-2 text-sm"></i>Nouvelle Réservation
+    <button
+      [routerLink]="['/reservations/new']"
+      class="bg-blue-600 text-white px-3 py-1.5 text-sm rounded hover:bg-blue-700 transition-colors flex items-center"
+    >
+      <i class="fas fa-plus mr-1 text-xs"></i>Nouvelle Réservation
     </button>
   </div>
 
   <!-- Error -->
-  <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm flex justify-between items-center">
+  <div
+    *ngIf="error"
+    class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3 text-sm flex justify-between items-center"
+  >
     <span>{{ error }}</span>
-    <button type="button" class="ml-3 px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-100 transition" (click)="loadReservations()">
+    <button
+      type="button"
+      class="ml-2 px-2 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-100 transition"
+      (click)="loadReservations()"
+    >
       <i class="fas fa-sync-alt mr-1"></i> Réessayer
     </button>
   </div>
 
   <!-- Search + Filters -->
-  <div class="mb-6">
-    <div class="flex items-center gap-3">
+  <div class="mb-4">
+    <div class="flex items-center gap-2">
       <!-- Search -->
       <div class="relative flex-1">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <i class="fas fa-search text-gray-400 text-sm"></i>
         </div>
-        <input type="text" [(ngModel)]="searchTerm" (input)="filterReservations()"
-               class="block w-full pl-10 pr-4 py-2.5 rounded-md border border-gray-300 text-sm placeholder-gray-400 
-                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-               placeholder="Rechercher une réservation...">
-        <button *ngIf="searchTerm" (click)="clearSearch()"
-                class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-red-500">
-          <i class="fas fa-times text-sm"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="filterReservations()"
+          class="block w-full pl-9 pr-3 py-2 rounded-md border border-gray-300 text-sm placeholder-gray-400 
+                      focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition"
+          placeholder="Rechercher une réservation..."
+        />
+        <button
+          *ngIf="searchTerm"
+          (click)="clearSearch()"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500"
+        >
+          <i class="fas fa-times text-xs"></i>
         </button>
       </div>
 
       <!-- Filter toggle -->
-      <button (click)="showFilters = !showFilters"
-              class="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium hover:bg-gray-50 
-                     focus:ring-2 focus:ring-blue-500 flex items-center">
-        <i class="fas {{ showFilters ? 'fa-filter-circle-xmark' : 'fa-filter' }} mr-2 text-sm"></i>
-        {{ showFilters ? 'Masquer' : 'Filtres' }}
+      <button
+        (click)="showFilters = !showFilters"
+        class="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium hover:bg-gray-50 
+                     focus:ring-1 focus:ring-blue-500 flex items-center"
+      >
+        <i class="fas {{ showFilters ? 'fa-filter-circle-xmark' : 'fa-filter' }} mr-1 text-xs"></i>
+        {{ showFilters ? "Masquer" : "Filtres" }}
       </button>
     </div>
 
     <!-- Filters -->
-    <div *ngIf="showFilters" class="mt-4">
-      <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+    <div *ngIf="showFilters" class="mt-3">
+      <div class="bg-gray-50 border border-gray-200 rounded-md p-3">
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <span class="font-medium text-gray-700 flex items-center">
-            <i class="fas fa-tags mr-2 text-blue-500"></i>Statut :
+            <i class="fas fa-tags mr-1 text-blue-500 text-xs"></i>Statut :
           </span>
-          <button (click)="selectStatus('all')" 
-                  class="px-3 py-1 rounded-md text-sm"
-                  [class]="selectedStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+          <button
+            (click)="selectStatus('all')"
+            class="px-2 py-1 rounded text-xs"
+            [class]="selectedStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'"
+          >
             Tous
           </button>
-          <button (click)="selectStatus('EnAttente')" 
-                  class="px-3 py-1 rounded-md text-sm"
-                  [class]="selectedStatus === 'EnAttente' ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+          <button
+            (click)="selectStatus('EnAttente')"
+            class="px-2 py-1 rounded text-xs"
+            [class]="
+              selectedStatus === 'EnAttente' ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'
+            "
+          >
             En Attente
           </button>
-          <button (click)="selectStatus('Confirmee')" 
-                  class="px-3 py-1 rounded-md text-sm"
-                  [class]="selectedStatus === 'Confirmee' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+          <button
+            (click)="selectStatus('Confirmee')"
+            class="px-2 py-1 rounded text-xs"
+            [class]="
+              selectedStatus === 'Confirmee' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'
+            "
+          >
             Confirmée
           </button>
-          <button (click)="selectStatus('Annulee')" 
-                  class="px-3 py-1 rounded-md text-sm"
-                  [class]="selectedStatus === 'Annulee' ? 'bg-red-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+          <button
+            (click)="selectStatus('Annulee')"
+            class="px-2 py-1 rounded text-xs"
+            [class]="selectedStatus === 'Annulee' ? 'bg-red-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'"
+          >
             Annulée
           </button>
-          <button (click)="selectStatus('Terminee')" 
-                  class="px-3 py-1 rounded-md text-sm"
-                  [class]="selectedStatus === 'Terminee' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'">
+          <button
+            (click)="selectStatus('Terminee')"
+            class="px-2 py-1 rounded text-xs"
+            [class]="
+              selectedStatus === 'Terminee' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 border hover:bg-gray-100'
+            "
+          >
             Terminée
           </button>
         </div>
@@ -81,50 +115,73 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="loading" class="text-center py-8 text-gray-500 text-sm">
-    Chargement des réservations...
+  <div *ngIf="loading" class="text-center py-8 text-gray-500">
+    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mb-2"></div>
+    <p class="text-sm">Chargement des réservations...</p>
   </div>
 
   <!-- Empty -->
-  <div *ngIf="!loading && filteredReservations.length === 0" class="text-center py-8 text-gray-500 text-sm">
-    Aucune réservation trouvée
+  <div *ngIf="!loading && filteredReservations.length === 0" class="text-center py-8 text-gray-500">
+    <i class="fas fa-calendar-times text-3xl text-gray-300 mb-2"></i>
+    <p class="text-sm">Aucune réservation trouvée</p>
   </div>
 
   <!-- Table -->
-  <div *ngIf="!loading && filteredReservations.length > 0" class="w-full overflow-x-auto bg-white rounded-lg shadow">
-    <table class="w-full border-collapse text-sm">
+  <div *ngIf="!loading && filteredReservations.length > 0" class="w-full overflow-x-auto bg-white rounded-md shadow mb-4">
+    <table class="w-full border-collapse text-xs">
       <thead>
         <tr>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">ID</th>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Client</th>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Début</th>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Fin</th>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Montant</th>
-          <th class="px-4 py-3 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Statut</th>
-          <th class="px-4 py-3 text-center bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">Actions</th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            ID
+          </th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Client
+          </th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Début
+          </th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Fin
+          </th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Montant
+          </th>
+          <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Statut
+          </th>
+          <th class="px-3 py-2 text-center bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
+            Actions
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let reservation of filteredReservations" class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 border-b">#{{ reservation?.id }}</td>
-          <td class="px-4 py-3 border-b">
+          <td class="px-3 py-2 border-b text-xs">#{{ reservation?.id }}</td>
+          <td class="px-3 py-2 border-b">
             <div>
-              <div class="font-medium">{{ reservation?.client?.name || 'N/A' }}</div>
-              <div class="text-xs text-gray-500">{{ reservation?.client?.phone || '' }}</div>
+              <div class="font-medium text-xs">{{ reservation?.client?.name || "N/A" }}</div>
+              <div class="text-xs text-gray-500">{{ reservation?.client?.phone || "" }}</div>
             </div>
           </td>
-          <td class="px-4 py-3 border-b">{{ reservation?.startDate | date:'dd/MM/yyyy' }}</td>
-          <td class="px-4 py-3 border-b">{{ reservation?.endDate | date:'dd/MM/yyyy' }}</td>
-          <td class="px-4 py-3 border-b font-mono font-medium">{{ reservation?.totalPrice | currency:'DZD ':'symbol':'1.2-2' }}</td>
-          <td class="px-4 py-3 border-b">
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize" [ngClass]="getStatusClass(reservation.status)">
+          <td class="px-3 py-2 border-b text-xs">{{ reservation?.startDate | date: "dd/MM/yyyy" }}</td>
+          <td class="px-3 py-2 border-b text-xs">{{ reservation?.endDate | date: "dd/MM/yyyy" }}</td>
+          <td class="px-3 py-2 border-b font-mono font-medium text-xs">
+            {{ reservation?.totalPrice | currency: "DZD ":"symbol":"1.2-2" }}
+          </td>
+          <td class="px-3 py-2 border-b">
+            <span
+              class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
+              [ngClass]="getStatusClass(reservation.status)"
+            >
               {{ getStatusText(reservation.status) }}
             </span>
           </td>
-          <td class="px-4 py-3 border-b text-center">
-            <button class="w-7 h-7 flex items-center justify-center bg-blue-500 text-white rounded hover:bg-blue-600" 
-                    [routerLink]="['/reservations', reservation.id]">
-              <i class="fas fa-eye text-sm"></i>
+          <td class="px-3 py-2 border-b text-center">
+            <button
+              class="w-6 h-6 flex items-center justify-center bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:-translate-y-0.5"
+              [routerLink]="['/reservations', reservation.id]"
+            >
+              <i class="fas fa-eye text-xs"></i>
             </button>
           </td>
         </tr>
@@ -133,14 +190,20 @@
   </div>
 
   <!-- Pagination -->
-  <div *ngIf="filteredReservations.length > 0" class="flex justify-center items-center gap-3 mt-4 text-sm">
-    <button (click)="previousPage()" [disabled]="currentPage === 1"
-            class="px-3 py-1.5 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+  <div *ngIf="filteredReservations.length > 0" class="flex justify-center items-center gap-2 mt-3 text-xs">
+    <button
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+      class="px-2 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700"
+    >
       Précédent
     </button>
     <span>Page {{ currentPage }}</span>
-    <button (click)="nextPage()" [disabled]="filteredReservations.length < itemsPerPage"
-            class="px-3 py-1.5 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+    <button
+      (click)="nextPage()"
+      [disabled]="filteredReservations.length < itemsPerPage"
+      class="px-2 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700"
+    >
       Suivant
     </button>
   </div>
