@@ -5,6 +5,7 @@ import { ReservationService } from '../../services/reservation.service';
 import { ClientService } from '../../services/client.service';
 import { ArticleService } from '../../services/article.service';
 import { Reservation, ReservationStatus } from '../../models/reservation';
+import { ReservationDetailDialogComponent } from '../reservations/reservation-detail-dialog/reservation-detail-dialog.component';
 
 interface CalendarDay {
   date: Date;
@@ -34,7 +35,7 @@ interface MonthlyStats {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReservationDetailDialogComponent],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 }) 
@@ -44,9 +45,12 @@ export class CalendarComponent implements OnInit {
   clients: any[] = [];
   loading = true;
   error = '';
-  selectedReservation: Reservation | null = null;
   selectedDay: CalendarDay | null = null;
   showDayModal = false;
+
+  // Detail dialog properties
+  showDetailDialog: boolean = false;
+  selectedReservationId: number | null = null;
 
   weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
   monthNames = [
@@ -73,49 +77,6 @@ export class CalendarComponent implements OnInit {
     this.loadMonthData(today.getFullYear(), today.getMonth());
   }
 
-  loadMonthData(year: number, month: number): void {
-    this.loading = true;
-    this.error = '';
-
-    // Load clients first
-    this.clientService.getClients().subscribe({
-      next: (clients) => {
-        this.clients = clients || [];
-        
-        // Try to use API calendar data, fallback to manual generation
-        this.reservationService.getCalendarData(year, month + 1).subscribe({
-          next: (data) => {
-            console.log('API Calendar data received:', data);
-            this.mapApiDataToCalendar(data, year, month);
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('API failed, using fallback:', error);
-            // Fallback: load reservations and generate calendar manually
-            this.reservationService.getReservations().subscribe({
-              next: (reservations) => {
-                this.reservations = (reservations || []).map(r => this.createReservationFromApiData(r));
-                this.generateCalendarFromReservations(year, month);
-                this.loading = false;
-              },
-              error: (error) => {
-                console.error('Error loading reservations:', error);
-                this.error = 'Erreur lors du chargement des données';
-                this.loading = false;
-              }
-            });
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading clients:', error);
-        this.clients = [];
-        this.error = 'Erreur lors du chargement des clients';
-        this.loading = false;
-      }
-    });
-  }
-
   // Utility method to create a complete Reservation object from API data
   private createReservationFromApiData(apiReservation: any): Reservation {
     return {
@@ -129,25 +90,6 @@ export class CalendarComponent implements OnInit {
       isActive: apiReservation.isActive !== undefined ? apiReservation.isActive : true,
       reservationItems: apiReservation.reservationItems || []
     };
-  }
-
-  mapApiDataToCalendar(apiData: any, year: number, month: number): void {
-    console.log('Mapping API data for:', year, month + 1);
-    
-    // Extract reservations from API data
-    this.reservations = [];
-    if (apiData.days && Array.isArray(apiData.days)) {
-      apiData.days.forEach((day: any) => {
-        if (day.reservations && Array.isArray(day.reservations)) {
-          day.reservations.forEach((r: any) => {
-            this.reservations.push(this.createReservationFromApiData(r));
-          });
-        }
-      });
-    }
-    
-    // Generate calendar manually with the reservation data
-    this.generateCalendarFromReservations(year, month);
   }
 
   generateCalendarFromReservations(year: number, month: number): void {
@@ -237,20 +179,6 @@ export class CalendarComponent implements OnInit {
     this.generateCalendarFromReservations(year, month);
   }
 
-  getReservationsForDate(date: Date): Reservation[] {
-    return this.reservations.filter(reservation => {
-      const startDate = new Date(reservation.startDate);
-      const endDate = new Date(reservation.endDate);
-      
-      // Set times to start of day for accurate comparison
-      const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const resStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-      const resEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-      
-      return checkDate >= resStart && checkDate <= resEnd;
-    });
-  }
-
   calculateDayRevenue(reservations: Reservation[]): number {
     return reservations.reduce((total, reservation) => {
       if (reservation.status !== ReservationStatus.Annulee) {
@@ -308,44 +236,51 @@ export class CalendarComponent implements OnInit {
     if(event) {
       event.stopPropagation();
     }
-    this.selectedReservation = reservation;
+    this.openReservationDetail(reservation.id!);
   }
 
-  closeReservationModal(): void {
-    this.selectedReservation = null;
+  // Detail dialog methods
+  openReservationDetail(reservationId: number): void {
+    this.selectedReservationId = reservationId;
+    this.showDetailDialog = true;
+  }
+
+  closeReservationDetail(): void {
+    this.showDetailDialog = false;
+    this.selectedReservationId = null;
   }
 
   editReservation(reservation: Reservation): void {
-    this.closeReservationModal();
+    this.closeReservationDetail();
     this.router.navigate(['/reservations', reservation.id, 'edit']);
   }
 
   addReservation(date: Date, event?: Event): void {
-  if (event) {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // Only allow adding reservations for current month
+    const dayData = this.currentMonth.days.find(d =>
+      d.date.getDate() === date.getDate() &&
+      d.date.getMonth() === date.getMonth() &&
+      d.date.getFullYear() === date.getFullYear()
+    );
+
+    if (!dayData || !dayData.isCurrentMonth) {
+      return;
+    }
+
+    // Format date to YYYY-MM-DD without timezone conversion
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+
+    this.router.navigate(['/reservations/new'], {
+      queryParams: { date: dateString }
+    });
   }
-
-  // Only allow adding reservations for current month
-  const dayData = this.currentMonth.days.find(d =>
-    d.date.getDate() === date.getDate() &&
-    d.date.getMonth() === date.getMonth() &&
-    d.date.getFullYear() === date.getFullYear()
-  );
-
-  if (!dayData || !dayData.isCurrentMonth) {
-    return;
-  }
-
-  // Format date to YYYY-MM-DD without timezone conversion
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const dateString = `${year}-${month}-${day}`;
-
-  this.router.navigate(['/reservations/new'], {
-    queryParams: { date: dateString }
-  });
-}
 
   // Utility methods
   getClientName(clientId: number): string {
@@ -494,7 +429,7 @@ export class CalendarComponent implements OnInit {
     };
 
     console.log('Exporting calendar data:', exportData);
-    alert(`📅 Export du calendrier ${this.currentMonth.monthName} ${this.currentMonth.year}\n\nDonnées préparées pour l'export. Fonctionnalité en cours de développement.`);
+    alert(`🗓️ Export du calendrier ${this.currentMonth.monthName} ${this.currentMonth.year}\n\nDonnées préparées pour l'export. Fonctionnalité en cours de développement.`);
   }
 
   generateMonthlyReport(): void {
@@ -554,5 +489,145 @@ export class CalendarComponent implements OnInit {
       day: '2-digit',
       month: '2-digit'
     });
+  }
+
+  //************************** */
+
+  // Fixed sections of calendar.component.ts
+
+  mapApiDataToCalendar(apiData: any, year: number, month: number): void {
+    console.log('Mapping API data for:', year, month + 1);
+    
+    // Extract reservations from API data with deduplication
+    const reservationMap = new Map<number, Reservation>();
+    
+    if (apiData.days && Array.isArray(apiData.days)) {
+      apiData.days.forEach((day: any) => {
+        if (day.reservations && Array.isArray(day.reservations)) {
+          day.reservations.forEach((r: any) => {
+            // Use reservation ID as key to prevent duplicates
+            if (!reservationMap.has(r.id)) {
+              reservationMap.set(r.id, this.createReservationFromApiData(r));
+            }
+          });
+        }
+      });
+    }
+    
+    // Convert map values to array
+    this.reservations = Array.from(reservationMap.values());
+    
+    // Generate calendar manually with the deduplicated reservation data
+    this.generateCalendarFromReservations(year, month);
+  }
+
+  // Alternative fix - if API returns reservations directly
+  loadMonthData(year: number, month: number): void {
+    this.loading = true;
+    this.error = '';
+
+    // Load clients first
+    this.clientService.getClients().subscribe({
+      next: (clients) => {
+        this.clients = clients || [];
+        
+        // Try to use API calendar data, fallback to manual generation
+        this.reservationService.getCalendarData(year, month + 1).subscribe({
+          next: (data) => {
+            console.log('API Calendar data received:', data);
+            this.mapApiDataToCalendar(data, year, month);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('API failed, using fallback:', error);
+            // Fallback: load reservations and generate calendar manually
+            this.reservationService.getReservations().subscribe({
+              next: (reservations) => {
+                // Ensure unique reservations by ID
+                const uniqueReservations = this.deduplicateReservations(
+                  (reservations || []).map(r => this.createReservationFromApiData(r))
+                );
+                this.reservations = uniqueReservations;
+                this.generateCalendarFromReservations(year, month);
+                this.loading = false;
+              },
+              error: (error) => {
+                console.error('Error loading reservations:', error);
+                this.error = 'Erreur lors du chargement des données';
+                this.loading = false;
+              }
+            });
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading clients:', error);
+        this.clients = [];
+        this.error = 'Erreur lors du chargement des clients';
+        this.loading = false;
+      }
+    });
+  }
+
+  // Add this new method to handle deduplication
+  private deduplicateReservations(reservations: Reservation[]): Reservation[] {
+    const reservationMap = new Map<number, Reservation>();
+    
+    reservations.forEach(reservation => {
+      if (reservation.id && !reservationMap.has(reservation.id)) {
+        reservationMap.set(reservation.id, reservation);
+      }
+    });
+    
+    return Array.from(reservationMap.values());
+  }
+
+  // Enhanced getReservationsForDate method with additional safety
+  getReservationsForDate(date: Date): Reservation[] {
+    const dateReservations = this.reservations.filter(reservation => {
+      const startDate = new Date(reservation.startDate);
+      const endDate = new Date(reservation.endDate);
+      
+      // Set times to start of day for accurate comparison
+      const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const resStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const resEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      
+      return checkDate >= resStart && checkDate <= resEnd;
+    });
+    
+    // Additional deduplication as safety measure
+    return this.deduplicateReservations(dateReservations);
+  }
+
+  // Enhanced debugging method
+  private debugReservations(): void {
+    console.log('Total reservations loaded:', this.reservations.length);
+    
+    // Check for duplicates by ID
+    const ids = this.reservations.map(r => r.id);
+    const uniqueIds = [...new Set(ids)];
+    
+    if (ids.length !== uniqueIds.length) {
+      console.warn('Duplicate reservation IDs detected!', {
+        total: ids.length,
+        unique: uniqueIds.length,
+        duplicates: ids.filter((id, index) => ids.indexOf(id) !== index)
+      });
+    }
+    
+    // Log reservations grouped by date
+    const reservationsByDate = new Map<string, Reservation[]>();
+    this.reservations.forEach(reservation => {
+      const startDate = new Date(reservation.startDate);
+      const dateKey = startDate.toDateString();
+      
+      if (!reservationsByDate.has(dateKey)) {
+        reservationsByDate.set(dateKey, []);
+      }
+      reservationsByDate.get(dateKey)!.push(reservation);
+    });
+    
+    console.log('Reservations by date:', Object.fromEntries(reservationsByDate));
   }
 }

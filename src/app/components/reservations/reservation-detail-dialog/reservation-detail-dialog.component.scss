@@ -1,0 +1,128 @@
+// Custom scrollbar for modal content
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}
+
+// Animation for modal entrance
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Apply entrance animation to modal content
+.bg-white.rounded-lg.shadow-xl {
+  animation: slideIn 0.2s ease-out;
+}
+
+// Backdrop animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fixed.inset-0.z-50 {
+  animation: fadeIn 0.15s ease-out;
+}
+
+// Loading spinner enhancement
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
+}
+
+// Table row hover effects
+tbody tr {
+  transition: all 0.15s ease-in-out;
+  
+  &:hover {
+    background-color: #f8fafc; 
+  }
+}
+
+// Status badge hover effects
+.inline-flex.items-center.px-3.py-1\.5 {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover { 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Card hover effects
+.bg-white.rounded-lg.p-3,
+.bg-white.rounded-lg.p-4 {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover { 
+    // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+// Button focus states
+button {
+  &:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+// Responsive improvements
+@media (max-width: 640px) {
+  .max-w-4xl {
+    margin: 1rem;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  // Stack table on mobile
+  table {
+    font-size: 0.75rem;
+  }
+  
+  th, td {
+    padding: 0.5rem 0.25rem;
+  }
+}

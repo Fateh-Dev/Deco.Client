@@ -1,15 +1,24 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Reservation } from '../models/reservation';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { Reservation } from "../models/reservation";
 
+export interface CreateReservationRequest {
+  clientId: number;
+  startDate: string;
+  endDate: string;
+  reservationItems: {
+    articleId: number;
+    quantity: number;
+  }[];
+}
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root"
 })
 export class ReservationService {
-  private apiUrl = 'http://localhost:5000/api/reservations';
+  private apiUrl = "http://localhost:5000/api/reservations";
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getReservations(): Observable<Reservation[]> {
     return this.http.get<Reservation[]>(this.apiUrl);
@@ -23,8 +32,9 @@ export class ReservationService {
     return this.http.get<Reservation[]>(`${this.apiUrl}/client/${clientId}`);
   }
 
-  createReservation(reservation: Reservation): Observable<Reservation> {
-    return this.http.post<Reservation>(this.apiUrl, reservation);
+  // Updated method to accept CreateReservationRequest instead of Reservation
+  createReservation(reservationRequest: CreateReservationRequest): Observable<Reservation> {
+    return this.http.post<Reservation>(this.apiUrl, reservationRequest);
   }
 
   updateReservation(id: number, reservation: Reservation): Observable<void> {

@@ -6,11 +6,13 @@ import { Subject, takeUntil } from 'rxjs';
 import { ReservationService } from '../../services/reservation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation';
 import { ClientService } from '../../services/client.service';
-import { Client } from '../../models/client'; 
+import { Client } from '../../models/client';
+import { ReservationDetailDialogComponent } from './reservation-detail-dialog/reservation-detail-dialog.component';
+
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReservationDetailDialogComponent],
   templateUrl: './reservations.component.html',
   styleUrls: ['./reservations.component.scss']
 })
@@ -26,6 +28,10 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   error: string | null = null;
   showFilters: boolean = false;
   showCreateForm: boolean = false;
+  
+  // Dialog state
+  showDetailDialog: boolean = false;
+  selectedReservationId: number | null = null;
  
   private destroy$ = new Subject<void>();
 
@@ -58,6 +64,22 @@ export class ReservationsComponent implements OnInit, OnDestroy {
 
     this.totalItems++;
     this.showCreateForm = false;
+  }
+
+  /**
+   * Open reservation detail dialog
+   */
+  openReservationDetail(reservationId: number): void {
+    this.selectedReservationId = reservationId;
+    this.showDetailDialog = true;
+  }
+
+  /**
+   * Close reservation detail dialog
+   */
+  closeReservationDetail(): void {
+    this.showDetailDialog = false;
+    this.selectedReservationId = null;
   }
 
   loadReservations(): void {
@@ -144,8 +166,14 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   }
 
   getStatusClass(status: ReservationStatus): string {
-    // This returns the CSS class for the status badge
-    return `status-${status}`;
+    // Map status to Tailwind CSS classes
+    const statusClasses: { [key in ReservationStatus]: string } = {
+      [ReservationStatus.EnAttente]: 'bg-orange-100 text-orange-800 border-orange-200',
+      [ReservationStatus.Confirmee]: 'bg-green-100 text-green-800 border-green-200',
+      [ReservationStatus.Annulee]: 'bg-red-100 text-red-800 border-red-200',
+      [ReservationStatus.Terminee]: 'bg-blue-100 text-blue-800 border-blue-200'
+    };
+    return statusClasses[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   }
 
   getStatusText(status: ReservationStatus): string {
@@ -163,21 +191,21 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     this.currentPage = page;
   }
 
-  previousPage() {
+  previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.updateFilteredReservations();
     }
   }
 
-  nextPage() {
+  nextPage(): void {
     if (this.filteredReservations.length === this.itemsPerPage) {
       this.currentPage++;
       this.updateFilteredReservations();
     }
   }
 
-  updateFilteredReservations() {
+  updateFilteredReservations(): void {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.filteredReservations = this.reservations.slice(startIndex, endIndex);

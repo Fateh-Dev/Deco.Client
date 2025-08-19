@@ -9,9 +9,10 @@ import { Category } from '../../../models/category';
 import { ArticleService } from '../../../services/article.service';
 import { ClientService } from '../../../services/client.service';
 import { CategoryService } from '../../../services/category.service';
-import { ReservationService } from '../../../services/reservation.service';
+import { CreateReservationRequest, ReservationService } from '../../../services/reservation.service';
 import { ReservationItem } from '../../../models/reservation-item';
 import { ActivatedRoute } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 // Extended Article interface for UI purposes
 interface ArticleWithTemp extends Article {
@@ -33,11 +34,11 @@ export class CreateReservationComponent implements OnInit {
   clients: Client[] = [];
   selectedClientId: number | null = null;
   startDate: Date = new Date();
-  endDate: Date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  endDate: Date = new Date(); // Same as start date by default
 
-  // For form binding
-  startDateString: string = this.formatDate(this.startDate);
-  endDateString: string = this.formatDate(this.endDate);
+  // For form binding - updated defaults
+  startDateString: string = this.formatDate(new Date());
+  endDateString: string = this.formatDate(new Date()); // Same date by default
 
   // Article selection
   articles: ArticleWithTemp[] = [];
@@ -56,18 +57,20 @@ export class CreateReservationComponent implements OnInit {
   // Drawer state
   isDrawerOpen = false;
 
-  constructor(private route: ActivatedRoute,
+  constructor(
+    private route: ActivatedRoute,
     private articleService: ArticleService,
     private clientService: ClientService,
     private categoryService: CategoryService,
-    private reservationService: ReservationService
-  ) { } 
+    private reservationService: ReservationService,
+    private toastr: ToastrService // Inject ToastrService
+  ) { }
 
   ngOnInit(): void {
     // Read the 'date' parameter from the URL
     this.route.queryParams.subscribe(params => {
       const dateParam = params['date'];
-      console.log('Date parameter from URL:', dateParam); // Debug log
+      console.log('Date parameter from URL:', dateParam);
       
       if (dateParam) {
         // Validate the date format (YYYY-MM-DD)
@@ -75,24 +78,18 @@ export class CreateReservationComponent implements OnInit {
         if (dateRegex.test(dateParam)) {
           const paramDate = new Date(dateParam);
           
-          console.log('Parsed date:', paramDate); // Debug log
-          console.log('Is valid date:', !isNaN(paramDate.getTime())); // Debug log
-          
-          // Check if the date is valid
           if (!isNaN(paramDate.getTime())) {
             this.startDateString = dateParam;
             this.startDate = paramDate;
             
-            // Update end date to be at least one day after start date
-            const nextDay = new Date(paramDate);
-            nextDay.setDate(nextDay.getDate() + 1);
-            this.endDateString = this.formatDate(nextDay);
-            this.endDate = nextDay;
+            // Set end date to same as start date (1 day rental by default)
+            this.endDateString = dateParam;
+            this.endDate = paramDate;
             
-            console.log('Start date set to:', this.startDateString); // Debug log
-            console.log('End date set to:', this.endDateString); // Debug log
+            console.log('Start date set to:', this.startDateString);
+            console.log('End date set to:', this.endDateString);
             
-            this.onDateChange(); // Trigger any date change logic
+            this.onDateChange();
           } else {
             console.warn('Invalid date parameter:', dateParam);
             this.setDefaultDates();
@@ -113,15 +110,67 @@ export class CreateReservationComponent implements OnInit {
 
   private setDefaultDates(): void {
     const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
     
     this.startDate = today;
-    this.endDate = tomorrow;
+    this.endDate = today; // Default to same day (1 day rental)
     this.startDateString = this.formatDate(today);
-    this.endDateString = this.formatDate(tomorrow);
+    this.endDateString = this.formatDate(today);
     
     console.log('Default dates set - Start:', this.startDateString, 'End:', this.endDateString);
+  }
+
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  private parseDate(dateString: string): Date {
+    return new Date(dateString);
+  }
+
+  calculateDays(): number {
+    if (!this.startDateString || !this.endDateString) return 1;
+    
+    const start = this.parseDate(this.startDateString);
+    const end = this.parseDate(this.endDateString);
+    
+    // For rental duration calculation:
+    // Same date (start = end) = 1 day rental
+    // Different dates = (end - start) + 1 days
+    if (start.getTime() === end.getTime()) {
+      return 1; // Same day rental = 1 day
+    }
+    
+    // Calculate the difference in days
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    
+    // Add 1 to include both start and end dates in the rental period
+    return Math.max(1, Math.floor(diffDays) + 1);
+  }
+
+  onDateChange(): void {
+    // Update Date objects when string values change
+    if (this.startDateString) {
+      this.startDate = this.parseDate(this.startDateString);
+    }
+    if (this.endDateString) {
+      this.endDate = this.parseDate(this.endDateString);
+    }
+
+    // If end date is before start date, set it to start date (1 day rental)
+    if (this.startDateString && this.endDateString) {
+      const start = this.parseDate(this.startDateString);
+      const end = this.parseDate(this.endDateString);
+
+      if (end < start) {
+        this.endDateString = this.startDateString;
+        this.endDate = new Date(start);
+      }
+    }
+  }
+
+  getTodayFormatted(): string {
+    return this.formatDate(new Date());
   }
 
   // Drawer methods
@@ -209,49 +258,6 @@ export class CreateReservationComponent implements OnInit {
     });
   }
 
-  private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
-  }
-
-  getTodayFormatted(): string {
-    return this.formatDate(new Date());
-  }
-
-  private parseDate(dateString: string): Date {
-    return new Date(dateString);
-  }
-
-  onDateChange(): void {
-    // Update Date objects when string values change
-    if (this.startDateString) {
-      this.startDate = this.parseDate(this.startDateString);
-    }
-    if (this.endDateString) {
-      this.endDate = this.parseDate(this.endDateString);
-    }
-
-    // If end date is before or equal to start date, update it to be one day after start date
-    if (this.startDateString && this.endDateString) {
-      const start = this.parseDate(this.startDateString);
-      const end = this.parseDate(this.endDateString);
-
-      if (end <= start) {
-        const nextDay = new Date(start);
-        nextDay.setDate(nextDay.getDate() + 1);
-        this.endDateString = this.formatDate(nextDay);
-        this.endDate = nextDay;
-      }
-    }
-  }
-
-  calculateDays(): number {
-    if (!this.startDateString || !this.endDateString) return 0;
-    const start = this.parseDate(this.startDateString);
-    const end = this.parseDate(this.endDateString);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-  }
-
   // Search functionality
   onSearch(): void {
     this.filterArticles();
@@ -324,61 +330,68 @@ export class CreateReservationComponent implements OnInit {
     }, 0);
   }
 
-  onSubmit(): void {
-    // Parse dates from string inputs
+ onSubmit(): void {
     const startDate = this.parseDate(this.startDateString);
     const endDate = this.parseDate(this.endDateString);
 
-    // Validate required fields
     if (!this.selectedClientId || !startDate || !endDate) {
       this.error = 'Veuillez remplir tous les champs obligatoires';
+      this.toastr.error('Veuillez remplir tous les champs obligatoires'); // Add toaster for validation error
       return;
     }
 
     if (this.reservationItems.length === 0) {
       this.error = 'Veuillez sélectionner au moins un article';
+      this.toastr.warning('Veuillez sélectionner au moins un article'); // Add toaster for empty items
       return;
     }
 
-    // Calculate total price based on selected articles and duration
-    const days = this.calculateDays();
-    const totalPrice = this.calculateTotalPrice() * days;
-
-    // Create reservation items
-    const reservationItems = this.reservationItems.map(item => ({
-      articleId: item.articleId,
-      quantity: item.quantity,
-      unitPrice: item.article?.pricePerDay || 0,
-      durationDays: days,
-      reservationId: 0, // Will be set by the server
-      article: undefined // Don't send the full article to the server
-    } as ReservationItem));
-
-    // Create a new reservation object with proper types
-    const newReservation: Reservation = {
+    const reservationRequest: CreateReservationRequest = {
       clientId: this.selectedClientId,
-      startDate: startDate,
-      endDate: endDate,
-      status: ReservationStatus.EnAttente,
-      totalPrice: totalPrice,
-      createdAt: new Date(),
-      isActive: true,
-      reservationItems: reservationItems
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      reservationItems: this.reservationItems.map(item => ({
+        articleId: item.articleId,
+        quantity: item.quantity
+      }))
     };
 
-    // Submit the reservation
     this.submitting = true;
     this.error = null;
 
-    this.reservationService.createReservation(newReservation).subscribe({
+    this.reservationService.createReservation(reservationRequest).subscribe({
       next: (createdReservation) => {
         this.submitting = false;
+        console.log('Reservation created successfully:', createdReservation);
+        
+        // Show success toaster
+        this.toastr.success('Réservation créée avec succès!', 'Succès');
+        
         this.reservationCreated.emit(createdReservation);
+        
+        // Call onCancel() to reinitialize the form
+        this.onCancel();
       },
       error: (err) => {
         this.submitting = false;
-        this.error = 'Erreur lors de la création de la réservation';
-        console.error('Error creating reservation:', err);
+        console.error('Full error object:', err);
+
+        let errorMessage = 'Une erreur est survenue lors de la création de la réservation.';
+        if (err.error && typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (err.error && err.error.message) {
+          errorMessage = err.error.message;
+        } else if (err.error && Array.isArray(err.error.errors)) {
+          errorMessage = err.error.errors.map((e: any) => e.message || e).join(', ');
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        // Set component error property
+        this.error = errorMessage;
+        
+        // Show error toaster
+        this.toastr.error(errorMessage, 'Erreur');
       }
     });
   }

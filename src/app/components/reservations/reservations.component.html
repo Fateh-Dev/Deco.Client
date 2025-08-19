@@ -179,7 +179,8 @@
           <td class="px-3 py-2 border-b text-center">
             <button
               class="w-6 h-6 flex items-center justify-center bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:-translate-y-0.5"
-              [routerLink]="['/reservations', reservation.id]"
+              (click)="openReservationDetail(reservation.id!)"
+              title="Voir les détails"
             >
               <i class="fas fa-eye text-xs"></i>
             </button>
@@ -208,3 +209,11 @@
     </button>
   </div>
 </div>
+
+<!-- Reservation Detail Dialog -->
+<app-reservation-detail-dialog
+  *ngIf="selectedReservationId"
+  [reservationId]="selectedReservationId"
+  [isVisible]="showDetailDialog"
+  (closeDialog)="closeReservationDetail()"
+></app-reservation-detail-dialog>

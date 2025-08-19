@@ -38,7 +38,7 @@
            [ngClass]="{
              'bg-gray-100 opacity-40': !day.isCurrentMonth,
              'bg-white group cursor-pointer hover:bg-gray-50': day.isCurrentMonth,
-             'bg-blue-50': day.isToday && day.isCurrentMonth
+             'bg-blue-200': day.isToday && day.isCurrentMonth
            }"
            (click)="day.isCurrentMonth ? selectDay(day) : null">
         
@@ -100,30 +100,7 @@
  
 </div>
 
-<!-- Reservation Modal -->
-<div *ngIf="selectedReservation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeReservationModal()">
-  <div class="bg-white rounded p-6 max-w-sm w-full" (click)="$event.stopPropagation()">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="font-semibold">Réservation</h3>
-      <button (click)="closeReservationModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="space-y-2 text-sm mb-4">
-      <div class="flex items-center space-x-2">
-        <i class="fas fa-ship text-blue-600"></i>
-        <div><strong>Client:</strong> {{ getClientName(selectedReservation.clientId) }}</div>
-      </div>
-      <div><strong>Période:</strong> {{ formatDate(selectedReservation.startDate) }} - {{ formatDate(selectedReservation.endDate) }}</div>
-      <div><strong>Prix:</strong> {{ formatCurrency(selectedReservation.totalPrice) }}</div>
-      <div><strong>Statut:</strong> <span class="px-2 py-1 rounded text-xs" [ngClass]="getStatusClass(selectedReservation.status)">{{ getStatusLabel(selectedReservation.status) }}</span></div>
-    </div>
-    <div class="flex space-x-2">
-      <button (click)="editReservation(selectedReservation)" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Modifier</button>
-      <button (click)="closeReservationModal()" class="flex-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Fermer</button>
-    </div>
-  </div>
-</div>
-
-<!-- Day Modal -->
+<!-- Day Modal - Keep this for showing all reservations in a day -->
 <div *ngIf="showDayModal && selectedDay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeDayModal()">
   <div class="bg-white rounded p-6 max-w-md w-full" (click)="$event.stopPropagation()">
     <div class="flex justify-between items-center mb-4">
@@ -157,3 +134,11 @@
     </div>
   </div>
 </div>
+
+<!-- Reservation Detail Dialog -->
+<app-reservation-detail-dialog
+  *ngIf="selectedReservationId"
+  [reservationId]="selectedReservationId"
+  [isVisible]="showDetailDialog"
+  (closeDialog)="closeReservationDetail()"
+></app-reservation-detail-dialog>
