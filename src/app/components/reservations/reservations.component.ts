@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ReservationService } from '../../services/reservation.service';
@@ -37,7 +37,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
 
   constructor(
     private reservationService: ReservationService,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -80,6 +81,10 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   closeReservationDetail(): void {
     this.showDetailDialog = false;
     this.selectedReservationId = null;
+  }
+
+  editReservation(reservationId: number): void {
+    this.router.navigate([`/reservations/edit/${reservationId}`]);
   }
 
   loadReservations(): void {

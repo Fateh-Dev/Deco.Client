@@ -255,18 +255,17 @@ export class CalendarComponent implements OnInit {
     this.router.navigate(['/reservations', reservation.id, 'edit']);
   }
 
-  addReservation(date: Date, event?: Event): void {
+  addReservation(date: Date, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
     }
-
-    // Only allow adding reservations for current month
-    const dayData = this.currentMonth.days.find(d =>
-      d.date.getDate() === date.getDate() &&
-      d.date.getMonth() === date.getMonth() &&
+    
+    const dayData = this.currentMonth.days.find(d => 
+      d.date.getDate() === date.getDate() && 
+      d.date.getMonth() === date.getMonth() && 
       d.date.getFullYear() === date.getFullYear()
     );
-
+    
     if (!dayData || !dayData.isCurrentMonth) {
       return;
     }
@@ -277,9 +276,8 @@ export class CalendarComponent implements OnInit {
     const day = String(date.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
 
-    this.router.navigate(['/reservations/new'], {
-      queryParams: { date: dateString }
-    });
+    // Use route parameter instead of query parameter
+    this.router.navigate(['/reservations/new', dateString]);
   }
 
   // Utility methods

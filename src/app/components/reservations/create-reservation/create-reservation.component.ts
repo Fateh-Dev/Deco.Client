@@ -35,7 +35,7 @@ export class CreateReservationComponent implements OnInit {
   selectedClientId: number | null = null;
   startDate: Date = new Date();
   endDate: Date = new Date(); // Same as start date by default
-  remarques: string = '';
+  remarques: string = ''; // Added for remarks field
 
   // For form binding - updated defaults
   startDateString: string = this.formatDate(new Date());
@@ -54,14 +54,12 @@ export class CreateReservationComponent implements OnInit {
   loading = false;
   submitting = false;
   error: string | null = null;
+  isEditMode = false;
+  editReservationId: number | null = null;
+  showPastDateModal = false;
 
   // Drawer state
   isDrawerOpen = false;
-  
-  // Past date confirmation modal
-  showPastDateModal = false;
-  showSuccessModal = false;
-  pendingReservationRequest: CreateReservationRequest | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -73,12 +71,15 @@ export class CreateReservationComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Read the 'date' parameter from the URL
-    this.route.queryParams.subscribe(params => {
-      const dateParam = params['date'];
-      console.log('Date parameter from URL:', dateParam);
+    // Read the parameters from the URL
+    this.route.paramMap.subscribe(params => {
+      const dateParam = params.get('date');
+      const reservationId = params.get('id');
       
-      if (dateParam) {
+      if (reservationId) {
+        // If we have a reservation ID, we're in edit mode
+        this.loadReservationForEdit(+reservationId);
+      } else if (dateParam) {
         // Validate the date format (YYYY-MM-DD)
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (dateRegex.test(dateParam)) {
@@ -110,8 +111,79 @@ export class CreateReservationComponent implements OnInit {
       }
     });
 
+    // Check query parameters (for backward compatibility)
+    this.route.queryParams.subscribe(params => {
+      const dateParam = params['date'];
+      const reservationId = params['id'];
+      
+      if (reservationId && !this.isEditMode) {
+        // If we have a reservation ID in query params and not already in edit mode
+        this.loadReservationForEdit(+reservationId);
+      } else if (dateParam && !this.startDateString) {
+        // Validate the date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(dateParam)) {
+          const paramDate = new Date(dateParam);
+          
+          if (!isNaN(paramDate.getTime())) {
+            this.startDateString = dateParam;
+            this.startDate = paramDate;
+            
+            // Set end date to same as start date (1 day rental by default)
+            this.endDateString = dateParam;
+            this.endDate = paramDate;
+            
+            console.log('Start date set from query param to:', this.startDateString);
+            
+            this.onDateChange();
+          }
+        }
+      }
+    });
+
     // Initialize your other data (clients, articles, categories, etc.)
     this.loadData();
+  }
+  
+  loadReservationForEdit(reservationId: number): void {
+    this.isEditMode = true;
+    this.editReservationId = reservationId;
+    
+    this.reservationService.getReservation(reservationId).subscribe({
+      next: (reservation) => {
+        // Set client
+        this.selectedClientId = reservation.clientId;
+        
+        // Set dates
+        this.startDate = new Date(reservation.startDate);
+        this.endDate = new Date(reservation.endDate);
+        this.startDateString = this.formatDate(this.startDate);
+        this.endDateString = this.formatDate(this.endDate);
+        
+        // Set remarks if available
+        this.remarques = reservation.remarques || '';
+        
+        // Set reservation items
+        if (reservation.reservationItems && reservation.reservationItems.length > 0) {
+          this.reservationItems = reservation.reservationItems.map(item => ({
+            articleId: item.articleId,
+            quantity: item.quantity,
+            article: item.article
+          }));
+        }
+        
+        // Open the drawer to show the items
+        this.isDrawerOpen = true;
+        
+        // Update the page title to indicate edit mode
+        this.toastr.info('Mode édition activé');
+      },
+      error: (error) => {
+        console.error('Error loading reservation for edit:', error);
+        this.error = 'Erreur lors du chargement de la réservation. Veuillez réessayer.';
+        this.toastr.error('Erreur lors du chargement de la réservation');
+      }
+    });
   }
 
   private setDefaultDates(): void {
@@ -352,8 +424,22 @@ export class CreateReservationComponent implements OnInit {
       return;
     }
 
+    // Check if the start date is in the past
+    if (this.checkForPastDate()) {
+      this.showPastDateModal = true;
+      return;
+    }
+
+    // If no past date or modal is confirmed, proceed with submission
+    this.submitReservation();
+  }
+
+  private submitReservation(): void {
+    const startDate = this.parseDate(this.startDateString);
+    const endDate = this.parseDate(this.endDateString);
+
     const reservationRequest: CreateReservationRequest = {
-      clientId: this.selectedClientId,
+      clientId: this.selectedClientId!,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       remarques: this.remarques,
@@ -363,65 +449,70 @@ export class CreateReservationComponent implements OnInit {
       }))
     };
 
-    // Check if start date is in the past
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
-    
-    if (startDate < today) {
-      // Store the request and show confirmation modal
-      this.pendingReservationRequest = reservationRequest;
-      this.showPastDateModal = true;
-      return;
-    }
-
-    // If date is not in the past, proceed with creation
-    this.createReservation(reservationRequest);
-  }
-
-  // Method to handle the actual reservation creation
-  private createReservation(reservationRequest: CreateReservationRequest): void {
     this.submitting = true;
     this.error = null;
 
-    this.reservationService.createReservation(reservationRequest).subscribe({
-      next: (createdReservation) => {
-        this.submitting = false;
-        console.log('Reservation created successfully:', createdReservation);
-        
-        // Show success modal instead of toaster
-        this.showSuccessModal = true;
-        
-        this.reservationCreated.emit(createdReservation);
-      },
-      error: (err) => {
-        this.submitting = false;
-        console.error('Full error object:', err);
-
-        let errorMessage = 'Une erreur est survenue lors de la création de la réservation.';
-        if (err.error && typeof err.error === 'string') {
-          errorMessage = err.error;
-        } else if (err.error && err.error.message) {
-          errorMessage = err.error.message;
-        } else if (err.error && Array.isArray(err.error.errors)) {
-          errorMessage = err.error.errors.map((e: any) => e.message || e).join(', ');
-        } else if (err.message) {
-          errorMessage = err.message;
+    if (this.isEditMode && this.editReservationId) {
+      // Update existing reservation
+      this.reservationService.updateReservation(this.editReservationId, reservationRequest).subscribe({
+        next: (updatedReservation) => {
+          this.submitting = false;
+          console.log('Reservation updated successfully:', updatedReservation);
+          
+          // Show success toaster
+          this.toastr.success('Réservation mise à jour avec succès!', 'Succès');
+          
+          this.reservationCreated.emit(updatedReservation);
+          
+          // Call onCancel() to reinitialize the form
+          this.onCancel();
+        },
+        error: (err) => {
+          this.handleSubmitError(err, 'mise à jour');
         }
-        
-        // Set component error property
-        this.error = errorMessage;
-        
-        // Show error toaster
-        this.toastr.error(errorMessage, 'Erreur');
-      }
-    });
+      });
+    } else {
+      // Create new reservation
+      this.reservationService.createReservation(reservationRequest).subscribe({
+        next: (createdReservation) => {
+          this.submitting = false;
+          console.log('Reservation created successfully:', createdReservation);
+          
+          // Show success toaster
+          this.toastr.success('Réservation créée avec succès!', 'Succès');
+          
+          this.reservationCreated.emit(createdReservation);
+          
+          // Call onCancel() to reinitialize the form
+          this.onCancel();
+        },
+        error: (err) => {
+          this.handleSubmitError(err, 'création');
+        }
+      });
+    }
   }
-  
-  // Method to close the success modal
-  closeSuccessModal(): void {
-    this.showSuccessModal = false;
-    // Call onCancel() to reinitialize the form
-    this.onCancel();
+
+  private handleSubmitError(err: any, operation: string): void {
+    this.submitting = false;
+    console.error(`Error during reservation ${operation}:`, err);
+
+    let errorMessage = `Une erreur est survenue lors de la ${operation} de la réservation.`;
+    if (err.error && typeof err.error === 'string') {
+      errorMessage = err.error;
+    } else if (err.error && err.error.message) {
+      errorMessage = err.error.message;
+    } else if (err.error && Array.isArray(err.error.errors)) {
+      errorMessage = err.error.errors.map((e: any) => e.message || e).join(', ');
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    // Set component error property
+    this.error = errorMessage;
+    
+    // Show error toaster
+    this.toastr.error(errorMessage, 'Erreur');
   }
 
   onCancel(): void {
@@ -432,35 +523,29 @@ export class CreateReservationComponent implements OnInit {
     this.selectedClientId = null;
     this.startDateString = '';
     this.endDateString = '';
-    this.remarques = '';
     this.error = null;
   
     // Also close the drawer if it's open
     this.isDrawerOpen = false;
-    
-    // Reset past date modal state
-    this.showPastDateModal = false;
-    this.pendingReservationRequest = null;
   }
-  
-  // Methods for past date confirmation modal
-  confirmPastDateReservation(): void {
-    if (this.pendingReservationRequest) {
-      // Proceed with reservation creation despite past date
-      this.createReservation(this.pendingReservationRequest);
-      
-      // Close the modal
-      this.showPastDateModal = false;
-      this.pendingReservationRequest = null;
-    }
-  }
-  
+
+  // Past date confirmation methods
   cancelPastDateReservation(): void {
-    // Just close the modal without creating the reservation
     this.showPastDateModal = false;
-    this.pendingReservationRequest = null;
+  }
+
+  confirmPastDateReservation(): void {
+    this.showPastDateModal = false;
+    this.submitReservation();
+  }
+
+  private checkForPastDate(): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
-    // Reset submitting state if it was set
-    this.submitting = false;
+    const startDate = new Date(this.startDateString);
+    startDate.setHours(0, 0, 0, 0);
+    
+    return startDate < today;
   }
 }

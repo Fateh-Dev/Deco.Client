@@ -105,22 +105,22 @@
                       [min]="startDateString || getTodayFormatted()" (change)="onDateChange()"
                       class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                   </div>
-      
-                  <!-- Duration Display -->
-                  <div class="bg-blue-50 border border-blue-200 p-4 rounded-md">
-                    <div class="text-sm font-medium text-blue-900">
-                      Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}
-                    </div>
-                  </div>
-                  
+
                   <!-- Remarques Field -->
                   <div>
                     <label for="remarques" class="block text-sm font-medium text-gray-700 mb-2">
                       Remarques
                     </label>
                     <textarea id="remarques" [(ngModel)]="remarques" rows="3"
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      placeholder="Ajoutez des remarques concernant cette réservation..."></textarea>
+                      placeholder="Ajoutez des notes ou des instructions spéciales..."
+                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                  </div>
+      
+                  <!-- Duration Display -->
+                  <div class="bg-blue-50 border border-blue-200 p-4 rounded-md">
+                    <div class="text-sm font-medium text-blue-900">
+                      Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -301,33 +301,6 @@
                 </svg>
                 Création...
               </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Success Modal -->
-    <div *ngIf="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
-      <div class="bg-white rounded-lg w-full max-w-sm">
-        <div class="p-4">
-          <div class="flex items-center mb-3">
-            <div class="flex-shrink-0">
-              <i class="fas fa-check-circle text-green-500 text-lg"></i>
-            </div>
-            <div class="ml-2">
-              <h3 class="text-base font-medium text-gray-900">Succès</h3>
-            </div>
-          </div>
-          <div class="mb-3 text-center">
-            <p class="text-sm text-gray-700">
-              Réservation créée avec succès!
-            </p>
-          </div>
-          <div class="flex justify-center">
-            <button (click)="closeSuccessModal()" 
-                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500">
-              OK
             </button>
           </div>
         </div>

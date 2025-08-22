@@ -17,6 +17,7 @@ export interface Reservation {
   totalPrice: number;
   createdAt: Date;
   isActive: boolean;
+  notes?: string;
   remarques?: string;
   
   // Navigation properties

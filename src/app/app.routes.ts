@@ -10,8 +10,10 @@ export const routes: Routes = [
   { path: '', component: HomePageComponent },
   { path: 'home', component: HomePageComponent },
   { path: 'articles', component: ArticleListComponent }, 
-  { path: 'reservations', component: ReservationsComponent }, // Temporary - replace with actual reservations component
-  { path: 'reservations/new', component: CreateReservationComponent }, // Temporary - replace with actual reservations component
+  { path: 'reservations', component: ReservationsComponent },
+  { path: 'reservations/new', component: CreateReservationComponent },
+  { path: 'reservations/new/:date', component: CreateReservationComponent },
+  { path: 'reservations/edit/:id', component: CreateReservationComponent },
   { path: 'clients', component: ClientListComponent }, // Temporary - replace with actual clients component
   { path: 'calendar', component: CalendarComponent }, // Temporary - replace with actual calendar component
   { path: 'administration', component: SettingsComponent }, // Temporary - replace with actual calendar component
