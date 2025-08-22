@@ -35,6 +35,7 @@ export class CreateReservationComponent implements OnInit {
   selectedClientId: number | null = null;
   startDate: Date = new Date();
   endDate: Date = new Date(); // Same as start date by default
+  remarques: string = '';
 
   // For form binding - updated defaults
   startDateString: string = this.formatDate(new Date());
@@ -355,6 +356,7 @@ export class CreateReservationComponent implements OnInit {
       clientId: this.selectedClientId,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
+      remarques: this.remarques,
       reservationItems: this.reservationItems.map(item => ({
         articleId: item.articleId,
         quantity: item.quantity
@@ -430,6 +432,7 @@ export class CreateReservationComponent implements OnInit {
     this.selectedClientId = null;
     this.startDateString = '';
     this.endDateString = '';
+    this.remarques = '';
     this.error = null;
   
     // Also close the drawer if it's open

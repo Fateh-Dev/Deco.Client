@@ -7,6 +7,7 @@ export interface CreateReservationRequest {
   clientId: number;
   startDate: string;
   endDate: string;
+  remarques?: string;
   reservationItems: {
     articleId: number;
     quantity: number;
