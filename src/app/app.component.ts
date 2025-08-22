@@ -16,6 +16,7 @@ interface NavItem {
 })
 export class AppComponent {
   title = 'LocationDeco.Client';
+  isExpanded = false;
 
   navItems: NavItem[] = [
     { label: 'Accueil', route: '/home' },
@@ -25,6 +26,10 @@ export class AppComponent {
     { label: 'Clients', route: '/clients' },
     { label: 'Administration', route: '/administration' }
   ];
+
+  toggleSidebar(): void {
+    this.isExpanded = !this.isExpanded;
+  }
 
   onCreateReservation(): void {
     console.log('Creating reservation...');

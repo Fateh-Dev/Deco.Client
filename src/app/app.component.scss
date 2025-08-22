@@ -2,16 +2,23 @@
 aside {
   /* Ensure sidebar stays fixed on mobile too */
   @media (max-width: 768px) {
-    width: 16px * 4; /* 4rem = 64px */
+    &.collapsed {
+      width: 4rem; /* 64px */
+    }
+    &.expanded {
+      width: 16rem; /* 256px */
+    }
   }
 }
 
 /* Icon hover animations */
-.group svg {
+.group svg,
+.group i {
   transition: all 0.3s ease;
 }
 
-.group:hover svg {
+.group:hover svg,
+.group:hover i {
   transform: scale(1.1);
 }
 
@@ -73,12 +80,67 @@ main::-webkit-scrollbar-thumb:hover {
 
 /* Ensure proper spacing for content */
 main {
-  padding-left: 0; /* Remove default padding since we have ml-16 */
+  padding-left: 0; /* Remove default padding since we have dynamic margin */
+}
+
+/* Text animations for expanding/collapsing */
+.transition-text {
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+/* Hover effects for toggle button */
+button:hover {
+  i {
+    transform: scale(1.1);
+  }
 }
 
 /* Mobile responsiveness */
 @media (max-width: 640px) {
+  aside {
+    /* On mobile, make it overlay instead of pushing content */
+    z-index: 50;
+  }
+  
   main {
-    margin-left: 4rem; /* Ensure content doesn't overlap sidebar on small screens */
+    margin-left: 4rem !important; /* Always maintain space for collapsed sidebar */
+  }
+  
+  /* Add overlay when expanded on mobile */
+  body.sidebar-expanded::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+}
+
+/* Animation for brand text */
+.brand-text {
+  transition: opacity 0.3s ease 0.1s, width 0.3s ease;
+}
+
+/* Stagger animation for nav items */
+.nav-item-text {
+  transition: opacity 0.3s ease, width 0.3s ease;
+}
+
+/* Enhanced hover states */
+.nav-link {
+  &:hover {
+    .nav-item-text {
+      color: #ffffff;
+    }
+  }
+}
+
+/* Active state enhancements */
+.router-link-active {
+  .nav-item-text {
+    font-weight: 600;
   }
 }
