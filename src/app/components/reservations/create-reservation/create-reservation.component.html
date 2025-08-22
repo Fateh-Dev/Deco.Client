@@ -192,7 +192,9 @@
                   <div class="flex justify-between items-start mb-2">
                     <div class="flex-1">
                       <h3 class="font-medium text-gray-900 text-sm">{{ article.name }}</h3>
-                      <p class="text-xs text-gray-500">Stock: {{ article.quantityTotal }}</p>
+                      <p class="text-xs text-gray-500">
+                        Stock: {{ article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal }} / {{ article.quantityTotal }}
+                      </p>
                     </div>
                   </div>
 

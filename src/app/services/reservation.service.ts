@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Reservation } from "../models/reservation";
+import { ArticleAvailability } from "../models/article-availability";
 
 export interface CreateReservationRequest {
   clientId: number;
@@ -48,5 +49,13 @@ export class ReservationService {
 
   getCalendarData(year: number, month: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/calendar/${year}/${month}`);
+  }
+
+  getArticlesAvailability(startDate: Date, endDate: Date): Observable<ArticleAvailability[]> {
+    const formattedStartDate = startDate.toISOString();
+    const formattedEndDate = endDate.toISOString();
+    return this.http.get<ArticleAvailability[]>(
+      `${this.apiUrl}/articles/availability?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+    );
   }
 }

@@ -14,10 +14,12 @@ import { ReservationItem } from '../../../models/reservation-item';
 import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CreateClientModalComponent } from '../create-client-modal/create-client-modal.component';
+import { ArticleAvailability } from '../../../models/article-availability';
 
 // Extended Article interface for UI purposes
 interface ArticleWithTemp extends Article {
   tempQuantity: number;
+  quantityAvailable?: number;
 }
 
 @Component({
@@ -271,6 +273,9 @@ export class CreateReservationComponent implements OnInit {
       if (end < start) {
         this.endDateString = this.startDateString;
         this.endDate = new Date(start);
+      } else {
+        // Load article availability for the selected date range
+        this.loadArticleAvailability();
       }
     }
   }
@@ -300,7 +305,8 @@ export class CreateReservationComponent implements OnInit {
   }
 
   increaseQuantity(article: ArticleWithTemp): void {
-    if (article.tempQuantity < article.quantityTotal) {
+    const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
+    if (article.tempQuantity < maxAvailable) {
       article.tempQuantity++;
     }
   }
@@ -313,22 +319,26 @@ export class CreateReservationComponent implements OnInit {
       return;
     }
 
+    const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
+    
     // Real-time validation
     if (value < 1) {
       article.tempQuantity = 1;
-    } else if (value > article.quantityTotal) {
-      article.tempQuantity = article.quantityTotal;
+    } else if (value > maxAvailable) {
+      article.tempQuantity = maxAvailable;
     } else {
       article.tempQuantity = value;
     }
   }
 
   validateQuantity(article: ArticleWithTemp): void {
+    const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
+    
     // Ensure valid quantity on blur (when user leaves the input)
     if (!article.tempQuantity || article.tempQuantity < 1) {
       article.tempQuantity = 1;
-    } else if (article.tempQuantity > article.quantityTotal) {
-      article.tempQuantity = article.quantityTotal;
+    } else if (article.tempQuantity > maxAvailable) {
+      article.tempQuantity = maxAvailable;
     }
 
     // Ensure it's an integer
@@ -350,11 +360,17 @@ export class CreateReservationComponent implements OnInit {
         // Add tempQuantity property to articles for UI binding
         this.articles = articles.map(article => ({
           ...article,
-          tempQuantity: 1
+          tempQuantity: 1,
+          quantityAvailable: article.quantityTotal // Default to total quantity until we get availability data
         }));
         this.categories = categories;
         this.filteredArticles = [...this.articles];
         this.loading = false;
+        
+        // Load article availability for the selected date range
+        if (this.startDateString && this.endDateString) {
+          this.loadArticleAvailability();
+        }
       },
       error: (err: any) => {
         this.error = 'Erreur lors du chargement des données';
@@ -390,8 +406,11 @@ export class CreateReservationComponent implements OnInit {
       filtered = filtered.filter(article => article.categoryId === this.selectedCategoryFilter);
     }
 
-    // Only show active articles with stock
-    filtered = filtered.filter(article => article.isActive && article.quantityTotal > 0);
+    // Only show active articles with available stock
+    filtered = filtered.filter(article => 
+      article.isActive && 
+      (article.quantityAvailable !== undefined ? article.quantityAvailable > 0 : article.quantityTotal > 0)
+    );
 
     this.filteredArticles = filtered;
   }
@@ -399,9 +418,81 @@ export class CreateReservationComponent implements OnInit {
   getFilteredArticles(): ArticleWithTemp[] {
     return this.filteredArticles;
   }
+  
+  private loadArticleAvailability(): void {
+    if (!this.startDate || !this.endDate) {
+      return;
+    }
+    
+    this.loading = true;
+    this.reservationService.getArticlesAvailability(this.startDate, this.endDate).subscribe({
+      next: (availabilityData: ArticleAvailability[]) => {
+        // Update articles with availability data
+        this.articles = this.articles.map(article => {
+          const availabilityInfo = availabilityData.find(a => a.id === article.id);
+          if (availabilityInfo) {
+            return {
+              ...article,
+              quantityAvailable: availabilityInfo.quantityAvailable
+            };
+          }
+          return article;
+        });
+        
+        // Update filtered articles
+        this.filterArticles();
+        this.loading = false;
+        
+        // Check if any selected items now exceed available quantity
+        this.checkReservationItemsAvailability(availabilityData);
+      },
+      error: (err) => {
+        console.error('Error loading article availability:', err);
+        this.loading = false;
+        this.toastr.error('Erreur lors du chargement de la disponibilité des articles');
+      }
+    });
+  }
 
+  private checkReservationItemsAvailability(availabilityData: ArticleAvailability[]): void {
+    // Check if any selected items now exceed available quantity
+    if (this.reservationItems.length > 0) {
+      let hasAdjustments = false;
+      
+      this.reservationItems.forEach(item => {
+        const availabilityInfo = availabilityData.find(a => a.id === item.articleId);
+        if (availabilityInfo && item.quantity > availabilityInfo.quantityAvailable) {
+          // Adjust quantity to available quantity
+          item.quantity = availabilityInfo.quantityAvailable;
+          hasAdjustments = true;
+        }
+      });
+      
+      // Filter out items with zero quantity
+      const originalLength = this.reservationItems.length;
+      this.reservationItems = this.reservationItems.filter(item => item.quantity > 0);
+      
+      if (hasAdjustments || this.reservationItems.length < originalLength) {
+        this.toastr.warning('Certaines quantités ont été ajustées en fonction de la disponibilité');
+      }
+    }
+  }
+  
   addArticleToReservation(article: ArticleWithTemp): void {
     if (!article.tempQuantity || article.tempQuantity < 1) {
+      return;
+    }
+    
+    const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
+    
+    // Ensure we don't exceed available quantity
+    if (article.tempQuantity > maxAvailable) {
+      article.tempQuantity = maxAvailable;
+    }
+    
+    // Check if there's no available quantity
+    if (maxAvailable <= 0) {
+      this.toastr.error(`${article.name} n'est pas disponible pour les dates sélectionnées`);
       return;
     }
 
@@ -555,9 +646,9 @@ export class CreateReservationComponent implements OnInit {
   
     // Optionally clear other form fields
     this.selectedClientId = null;
-    this.startDateString = '';
+    // this.startDateString = '';
     this.remarques = '';
-    this.endDateString = '';
+    // this.endDateString = '';
     this.error = null;
   
     // Also close the drawer if it's open
@@ -572,7 +663,7 @@ export class CreateReservationComponent implements OnInit {
   closeSuccessModal(): void {
     this.showSuccessModal = false;
     // Reset the form after closing the success modal
-    this.onCancel();
+    this.ngOnInit();
   }
 
   confirmPastDateReservation(): void {
