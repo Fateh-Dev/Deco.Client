@@ -56,6 +56,11 @@ export class CreateReservationComponent implements OnInit {
 
   // Drawer state
   isDrawerOpen = false;
+  
+  // Past date confirmation modal
+  showPastDateModal = false;
+  showSuccessModal = false;
+  pendingReservationRequest: CreateReservationRequest | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -356,6 +361,23 @@ export class CreateReservationComponent implements OnInit {
       }))
     };
 
+    // Check if start date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+    
+    if (startDate < today) {
+      // Store the request and show confirmation modal
+      this.pendingReservationRequest = reservationRequest;
+      this.showPastDateModal = true;
+      return;
+    }
+
+    // If date is not in the past, proceed with creation
+    this.createReservation(reservationRequest);
+  }
+
+  // Method to handle the actual reservation creation
+  private createReservation(reservationRequest: CreateReservationRequest): void {
     this.submitting = true;
     this.error = null;
 
@@ -364,13 +386,10 @@ export class CreateReservationComponent implements OnInit {
         this.submitting = false;
         console.log('Reservation created successfully:', createdReservation);
         
-        // Show success toaster
-        this.toastr.success('Réservation créée avec succès!', 'Succès');
+        // Show success modal instead of toaster
+        this.showSuccessModal = true;
         
         this.reservationCreated.emit(createdReservation);
-        
-        // Call onCancel() to reinitialize the form
-        this.onCancel();
       },
       error: (err) => {
         this.submitting = false;
@@ -395,6 +414,13 @@ export class CreateReservationComponent implements OnInit {
       }
     });
   }
+  
+  // Method to close the success modal
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    // Call onCancel() to reinitialize the form
+    this.onCancel();
+  }
 
   onCancel(): void {
     // Clear all selected items
@@ -408,5 +434,30 @@ export class CreateReservationComponent implements OnInit {
   
     // Also close the drawer if it's open
     this.isDrawerOpen = false;
+    
+    // Reset past date modal state
+    this.showPastDateModal = false;
+    this.pendingReservationRequest = null;
+  }
+  
+  // Methods for past date confirmation modal
+  confirmPastDateReservation(): void {
+    if (this.pendingReservationRequest) {
+      // Proceed with reservation creation despite past date
+      this.createReservation(this.pendingReservationRequest);
+      
+      // Close the modal
+      this.showPastDateModal = false;
+      this.pendingReservationRequest = null;
+    }
+  }
+  
+  cancelPastDateReservation(): void {
+    // Just close the modal without creating the reservation
+    this.showPastDateModal = false;
+    this.pendingReservationRequest = null;
+    
+    // Reset submitting state if it was set
+    this.submitting = false;
   }
 }

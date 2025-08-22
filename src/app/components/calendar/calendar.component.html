@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-4">
+<div class="h-screen bg-gray-50 p-4 flex flex-col overflow-hidden">
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Calendrier des Locations</h1>
@@ -6,7 +6,7 @@
       <button (click)="goToPreviousMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
         <i class="fas fa-chevron-left"></i>
       </button>
-      <div class="text-lg font-semibold px-4">{{ currentMonth.monthName }} {{ currentMonth.year }}</div>
+      <div class="text-lg font-semibold px-4">{{ currentMonth?.monthName || '' }} {{ currentMonth?.year || '' }}</div>
       <button (click)="goToNextMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
         <i class="fas fa-chevron-right"></i>
       </button>
@@ -25,20 +25,20 @@
   </div>
 
   <!-- Calendar -->
-  <div *ngIf="!loading" class="bg-white rounded border shadow-sm mb-6">
+  <div *ngIf="!loading" class="bg-white rounded border shadow-sm mb-6 flex-1 flex flex-col overflow-hidden">
     <!-- Days Header -->
     <div class="grid grid-cols-7 bg-gray-50 border-b">
       <div *ngFor="let day of weekDays" class="p-2 text-center text-sm font-medium text-gray-700 border-r last:border-r-0">{{ day }}</div>
     </div>
     
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7">
+    <div class="grid grid-cols-7 flex-1 overflow-auto">
       <div *ngFor="let day of currentMonth.days; trackBy: trackByDate"
-           class="min-h-[120px] border-r border-b last:border-r-0 p-1 relative"
+           class="min-h-[80px] border-r border-b last:border-r-0 p-1 relative"
            [ngClass]="{
              'bg-gray-100 opacity-40': !day.isCurrentMonth,
              'bg-white group cursor-pointer hover:bg-gray-50': day.isCurrentMonth,
-             'bg-blue-200': day.isToday && day.isCurrentMonth
+             'bg-blue-300/50': day.isToday && day.isCurrentMonth
            }"
            (click)="day.isCurrentMonth ? selectDay(day) : null">
         
@@ -59,9 +59,9 @@
                   class="text-xs px-1 py-0.5 rounded bg-green-100 text-green-700">
               {{ formatCurrency(day.revenue) }}
             </span>
-            <!-- Ship icon for days with reservations -->
+            <!-- Calendar icon for days with reservations -->
             <div *ngIf="day.hasReservations" class="flex items-center space-x-1">
-              <i class="fas fa-ship text-blue-600 text-xs"></i>
+              <i class="fas fa-calendar-check text-blue-600 text-xs"></i>
               <span class="text-xs text-blue-600 font-medium">{{ day.reservations.length }}</span>
             </div>
           </div>
@@ -73,13 +73,13 @@
                class="text-xs p-0.5 rounded truncate border cursor-pointer flex items-center space-x-1"
                [ngClass]="getReservationStatusClass(reservation.status)"
                (click)="viewReservation(reservation, $event)">
-            <i class="fas fa-ship text-xs"></i>
+            <i class="fas fa-calendar-day text-xs"></i>
             <span>{{ getClientName(reservation.clientId) }}</span>
           </div>
           <div *ngIf="hasHiddenReservations(day)" 
                class="text-xs text-gray-500 text-center cursor-pointer flex items-center justify-center space-x-1" 
                (click)="selectDay(day)">
-            <i class="fas fa-ship text-xs"></i>
+            <i class="fas fa-calendar-plus text-xs"></i>
             <span>+{{ getHiddenReservationsCount(day) }}</span>
           </div>
         </div>
@@ -102,12 +102,13 @@
 
 <!-- Day Modal - Keep this for showing all reservations in a day -->
 <div *ngIf="showDayModal && selectedDay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeDayModal()">
-  <div class="bg-white rounded p-6 max-w-md w-full" (click)="$event.stopPropagation()">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="font-semibold">{{ selectedDay.day }} {{ currentMonth.monthName }}</h3>
+  <div class="bg-white rounded p-6 max-w-md w-full max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
+      <h3 class="font-semibold">{{ selectedDay.day }} {{ currentMonth?.monthName || '' }}</h3>
       <button (click)="closeDayModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+    
+    <div class="grid grid-cols-2 gap-4 mb-4 text-center flex-shrink-0">
       <div class="bg-blue-50 p-3 rounded">
         <div class="text-xl font-bold text-blue-600">{{ selectedDay.reservations.length }}</div>
         <div class="text-sm">Réservations</div>
@@ -117,18 +118,20 @@
         <div class="text-sm">Revenus</div>
       </div>
     </div>
-    <div class="space-y-2 max-h-32 overflow-y-auto mb-4">
-      <div *ngFor="let reservation of selectedDay.reservations" 
+    
+    <div class="space-y-2 overflow-y-auto mb-4 flex-1 min-h-0">
+      <div *ngFor="let reservation of selectedDay.reservations"
            class="border rounded p-2 hover:bg-gray-50 cursor-pointer text-sm flex justify-between items-center"
            (click)="viewReservation(reservation)">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-ship text-blue-600"></i>
+          <i class="fas fa-calendar-alt text-blue-600"></i>
           <span>{{ getClientName(reservation.clientId) }}</span>
         </div>
         <span>{{ formatCurrency(reservation.totalPrice) }}</span>
       </div>
     </div>
-    <div class="flex space-x-2">
+    
+    <div class="flex space-x-2 flex-shrink-0">
       <button (click)="addReservation(selectedDay.date)" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouvelle</button>
       <button (click)="closeDayModal()" class="flex-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Fermer</button>
     </div>
