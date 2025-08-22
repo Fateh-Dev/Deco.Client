@@ -248,19 +248,27 @@
       </section>
     </div>
 
-    <!-- Error Message -->
-    <div *ngIf="error" class="fixed bottom-4 right-4 max-w-md z-50">
-      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <i class="fas fa-exclamation-circle text-red-400"></i>
+    <!-- Error Modal -->
+    <div *ngIf="showErrorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
+      <div class="bg-white rounded-lg w-full max-w-sm">
+        <div class="p-4">
+          <div class="flex items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            </div>
+            <div class="ml-2">
+              <h3 class="text-base font-medium text-gray-900">Erreur</h3>
+            </div>
           </div>
-          <div class="ml-3">
-            <p class="text-sm text-red-800">{{ error }}</p>
+          <div class="mb-3">
+            <p class="text-xs text-gray-500">
+              {{ errorMessage }}
+            </p>
           </div>
-          <div class="ml-auto pl-3">
-            <button (click)="error = null" class="text-red-400 hover:text-red-600">
-              <i class="fas fa-times"></i>
+          <div class="flex justify-end space-x-2">
+            <button (click)="showErrorModal = false" 
+                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-red-500">
+              OK
             </button>
           </div>
         </div>
@@ -301,6 +309,33 @@
                 </svg>
                 Création...
               </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div *ngIf="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
+      <div class="bg-white rounded-lg w-full max-w-sm">
+        <div class="p-4">
+          <div class="flex items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-check-circle text-green-500 text-lg"></i>
+            </div>
+            <div class="ml-2">
+              <h3 class="text-base font-medium text-gray-900">Succès</h3>
+            </div>
+          </div>
+          <div class="mb-3">
+            <p class="text-xs text-gray-500">
+              {{ successMessage }}
+            </p>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button (click)="closeSuccessModal()" 
+                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500">
+              OK
             </button>
           </div>
         </div>

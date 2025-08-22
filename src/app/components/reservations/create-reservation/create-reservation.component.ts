@@ -462,10 +462,11 @@ export class CreateReservationComponent implements OnInit {
           // Show success toaster
           this.toastr.success('Réservation mise à jour avec succès!', 'Succès');
           
-          this.reservationCreated.emit(updatedReservation);
+          // Show success modal
+          this.successMessage = 'Votre réservation a été mise à jour avec succès!';
+          this.showSuccessModal = true;
           
-          // Call onCancel() to reinitialize the form
-          this.onCancel();
+          this.reservationCreated.emit(updatedReservation);
         },
         error: (err) => {
           this.handleSubmitError(err, 'mise à jour');
@@ -481,10 +482,11 @@ export class CreateReservationComponent implements OnInit {
           // Show success toaster
           this.toastr.success('Réservation créée avec succès!', 'Succès');
           
-          this.reservationCreated.emit(createdReservation);
+          // Show success modal
+          this.successMessage = 'Votre réservation a été créée avec succès!';
+          this.showSuccessModal = true;
           
-          // Call onCancel() to reinitialize the form
-          this.onCancel();
+          this.reservationCreated.emit(createdReservation);
         },
         error: (err) => {
           this.handleSubmitError(err, 'création');
@@ -513,6 +515,10 @@ export class CreateReservationComponent implements OnInit {
     
     // Show error toaster
     this.toastr.error(errorMessage, 'Erreur');
+    
+    // Show error modal
+    this.errorMessage = errorMessage;
+    this.showErrorModal = true;
   }
 
   onCancel(): void {
@@ -522,6 +528,7 @@ export class CreateReservationComponent implements OnInit {
     // Optionally clear other form fields
     this.selectedClientId = null;
     this.startDateString = '';
+    this.remarques = '';
     this.endDateString = '';
     this.error = null;
   
@@ -532,6 +539,12 @@ export class CreateReservationComponent implements OnInit {
   // Past date confirmation methods
   cancelPastDateReservation(): void {
     this.showPastDateModal = false;
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    // Reset the form after closing the success modal
+    this.onCancel();
   }
 
   confirmPastDateReservation(): void {
@@ -548,4 +561,9 @@ export class CreateReservationComponent implements OnInit {
     
     return startDate < today;
   }
+  // Modal properties
+  showSuccessModal = false;
+  successMessage = '';
+  showErrorModal = false;
+  errorMessage = '';
 }
