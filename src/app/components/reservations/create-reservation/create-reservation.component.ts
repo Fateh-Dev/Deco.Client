@@ -13,6 +13,7 @@ import { CreateReservationRequest, ReservationService } from '../../../services/
 import { ReservationItem } from '../../../models/reservation-item';
 import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { CreateClientModalComponent } from '../create-client-modal/create-client-modal.component';
 
 // Extended Article interface for UI purposes
 interface ArticleWithTemp extends Article {
@@ -22,7 +23,7 @@ interface ArticleWithTemp extends Article {
 @Component({
   selector: 'app-create-reservation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CreateClientModalComponent],
   templateUrl: './create-reservation.component.html',
   styleUrls: ['./create-reservation.component.scss']
 })
@@ -60,6 +61,9 @@ export class CreateReservationComponent implements OnInit {
 
   // Drawer state
   isDrawerOpen = false;
+  
+  // Client modal state
+  showCreateClientModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -69,6 +73,30 @@ export class CreateReservationComponent implements OnInit {
     private reservationService: ReservationService,
     private toastr: ToastrService // Inject ToastrService
   ) { }
+  
+  // Méthode pour ouvrir le modal de création de client
+  openCreateClientModal(): void {
+    this.showCreateClientModal = true;
+  }
+  
+  // Méthode pour fermer le modal de création de client
+  closeCreateClientModal(): void {
+    this.showCreateClientModal = false;
+  }
+  
+  // Méthode appelée lorsqu'un client est créé via le modal
+  onClientCreated(newClient: Client): void {
+    // Ajouter le nouveau client à la liste des clients
+    this.clients = [newClient, ...this.clients];
+    
+    // Sélectionner automatiquement le client nouvellement créé
+    if (newClient.id !== undefined) {
+      this.selectedClientId = newClient.id;
+    }
+    
+    // Afficher un message de succès
+    this.toastr.success('Client créé avec succès!', 'Succès');
+  }
 
   ngOnInit(): void {
     // Read the parameters from the URL

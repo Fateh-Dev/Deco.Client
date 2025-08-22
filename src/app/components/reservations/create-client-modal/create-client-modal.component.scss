@@ -1,0 +1,13 @@
+/* Styles spécifiques au composant create-client-modal */
+
+/* Animation d'entrée et de sortie pour le modal */
+:host {
+  display: block;
+}
+
+/* Styles pour les champs de formulaire */
+input, select {
+  &.ng-touched.ng-invalid {
+    border-color: #ef4444;
+  }
+}
