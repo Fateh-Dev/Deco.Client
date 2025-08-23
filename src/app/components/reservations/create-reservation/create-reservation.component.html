@@ -11,32 +11,63 @@
           <!-- Quick Cart Summary -->
           <div class="flex items-center space-x-4 mr-4 px-3 py-2 bg-gray-50 rounded-lg">
             <span class="text-sm text-gray-600">
-              {{ reservationItems.length }} article{{ reservationItems.length !== 1 ? 's' : '' }} sélectionné{{
-              reservationItems.length !== 1 ? 's' : '' }}
+              {{ reservationItems.length }} article{{ reservationItems.length !== 1 ? "s" : "" }} sélectionné{{
+                reservationItems.length !== 1 ? "s" : ""
+              }}
             </span>
             <span *ngIf="reservationItems.length > 0" class="text-sm font-medium text-blue-600">
-              Total: {{ calculateTotalPrice() * calculateDays() | currency:'DZD ':'symbol':'1.0-0' }}
+              Total: {{ calculateTotalPrice() * calculateDays() | currency: "DZD ":"symbol":"1.0-0" }}
             </span>
           </div>
 
           <!-- Cart Summary Button -->
-          <button type="button" (click)="toggleDrawer()"
-            class="relative px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center">
-            <i class="fas fa-shopping-cart mr-2"></i>
-            Panier
-            <span *ngIf="reservationItems.length > 0"
-              class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <button
+            type="button"
+            (click)="toggleDrawer()"
+            class="relative px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+          >
+            <i class="fas fa-shopping-cart mr-2"></i> Panier
+            <span
+              *ngIf="reservationItems.length > 0"
+              class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+            >
               {{ reservationItems.length }}
             </span>
           </button>
-          <button type="button" (click)="onCancel()" [disabled]="submitting"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+          <button
+            type="button"
+            (click)="onCancel()"
+            [disabled]="submitting"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
             Annuler
           </button>
-          <button type="submit" (click)="onSubmit()"
+          <button
+            type="submit"
+            (click)="onSubmit()"
             [disabled]="reservationItems.length === 0 || submitting || !selectedClientId"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
             <span *ngIf="!submitting">Sauvegarder la Réservation</span>
+            <span *ngIf="submitting" class="flex items-center">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Création...
+            </span>
+          </button>
+          <!-- <button type="button" (click)="saveAndPrintReservation()"
+            [disabled]="reservationItems.length === 0 || submitting || !selectedClientId"
+            class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50">
+            <span *ngIf="!submitting" class="flex items-center">
+              <i class="fas fa-print mr-2"></i>
+              Sauvegarder et Imprimer
+            </span>
             <span *ngIf="submitting" class="flex items-center">
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
@@ -47,7 +78,7 @@
               </svg>
               Création...
             </span>
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -61,13 +92,12 @@
   <!-- Main Layout -->
   <main class="w-full px-2 sm:px-2 lg:px-4 py-4 flex-1 overflow-hidden min-h-0" *ngIf="!loading">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 h-full">
-
       <!-- LEFT: Client & Event Details -->
       <aside class="lg:col-span-1">
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">Client & Événement</h2>
-      
+
             <div class="space-y-6">
               <!-- Client Selection -->
               <div>
@@ -75,57 +105,77 @@
                   Sélectionner un client <span class="text-red-500">*</span>
                 </label>
                 <div class="flex space-x-2">
-                  <select id="client" [(ngModel)]="selectedClientId" required
-                    class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                  <select
+                    id="client"
+                    [(ngModel)]="selectedClientId"
+                    required
+                    class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
                     <option [ngValue]="null">Choisir un client...</option>
                     <option *ngFor="let client of clients" [ngValue]="client.id">
                       {{ client.name }} ({{ client.phone }})
                     </option>
                   </select>
-                  <button type="button" (click)="openCreateClientModal()" 
-                    class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                  <button
+                    type="button"
+                    (click)="openCreateClientModal()"
+                    class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
                     <i class="fas fa-plus"></i>
                   </button>
                 </div>
               </div>
-      
+
               <!-- Event Details -->
               <div class="border-t border-gray-200 pt-6">
                 <h3 class="text-base font-medium text-gray-900 mb-4">Détails de l'événement</h3>
-      
+
                 <div class="space-y-4">
                   <div>
                     <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">
                       Date de début <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" id="startDate" [(ngModel)]="startDateString" required
+                    <input
+                      type="date"
+                      id="startDate"
+                      [(ngModel)]="startDateString"
+                      required
                       (change)="onDateChange()"
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    />
                   </div>
-      
+
                   <div>
                     <label for="endDate" class="block text-sm font-medium text-gray-700 mb-2">
                       Date de retour <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" id="endDate" [(ngModel)]="endDateString" required
-                      [min]="startDateString || getTodayFormatted()" (change)="onDateChange()"
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <input
+                      type="date"
+                      id="endDate"
+                      [(ngModel)]="endDateString"
+                      required
+                      [min]="startDateString || getTodayFormatted()"
+                      (change)="onDateChange()"
+                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    />
                   </div>
 
                   <!-- Remarques Field -->
                   <div>
-                    <label for="remarques" class="block text-sm font-medium text-gray-700 mb-2">
-                      Remarques
-                    </label>
-                    <textarea id="remarques" [(ngModel)]="remarques" rows="3"
+                    <label for="remarques" class="block text-sm font-medium text-gray-700 mb-2"> Remarques </label>
+                    <textarea
+                      id="remarques"
+                      [(ngModel)]="remarques"
+                      rows="3"
                       placeholder="Ajoutez des notes ou des instructions spéciales..."
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    ></textarea>
                   </div>
-      
+
                   <!-- Duration Display -->
                   <div class="bg-blue-50 border border-blue-200 p-4 rounded-md">
                     <div class="text-sm font-medium text-blue-900">
-                      Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}
+                      Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? "s" : "" }}
                     </div>
                   </div>
                 </div>
@@ -139,14 +189,14 @@
       <section class="lg:col-span-3 flex flex-col h-full">
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col h-full">
           <div class="p-4 flex-shrink-0">
-            <div class="flex justify-between items-center mb-4">
+            <!-- <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-medium text-gray-900">Articles</h2>
               <button type="button" (click)="toggleDrawer()"
                 class="lg:hidden px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center">
                 <i class="fas fa-shopping-cart mr-2"></i>
                 Voir Panier ({{ reservationItems.length }})
               </button>
-            </div>
+            </div> -->
 
             <!-- Search and Filter -->
             <div class="flex gap-3 mb-4">
@@ -154,16 +204,21 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
+                <input
+                  type="text"
+                  [(ngModel)]="searchTerm"
+                  (input)="onSearch()"
                   placeholder=" Rechercher un article..."
-                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
-              <select [(ngModel)]="selectedCategoryFilter" (change)="onCategoryFilter()"
-                class="w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select
+                [(ngModel)]="selectedCategoryFilter"
+                (change)="onCategoryFilter()"
+                class="w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
                 <option [ngValue]="null">Toutes catégories</option>
-                <option *ngFor="let category of categories" [ngValue]="category.id">
-                  {{ category.name }}
-                </option>
+                <option *ngFor="let category of categories" [ngValue]="category.id"> {{ category.name }} </option>
               </select>
             </div>
           </div>
@@ -171,18 +226,23 @@
           <!-- Articles Grid (More space now!) -->
           <div class="flex-1 overflow-hidden px-4 pb-4">
             <div
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-1 h-full overflow-y-auto p-1">
-              <div *ngFor="let article of getFilteredArticles()"
-                class="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow">
-
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-1 h-full overflow-y-auto p-1"
+            >
+              <div
+                *ngFor="let article of getFilteredArticles()"
+                class="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow"
+              >
                 <!-- Article Image -->
                 <div class="aspect-w-4 aspect-h-3 bg-gray-100 relative">
-                  <img [src]="article.imageUrl || 'https://placehold.co/400x300?text=Image+non+disponible'"
-                    [alt]="article.name" class="w-full h-32 object-cover"
-                    onerror="this.src='https://placehold.co/400x300?text=Image+non+disponible'">
+                  <img
+                    [src]="article.imageUrl || 'https://placehold.co/400x300?text=Image+non+disponible'"
+                    [alt]="article.name"
+                    class="w-full h-32 object-cover"
+                    onerror="this.src='https://placehold.co/400x300?text=Image+non+disponible'"
+                  />
                   <div class="absolute top-2 right-2">
                     <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                      {{ article.pricePerDay | currency:'DZD ':'symbol':'1.0-0' }}/jour
+                      {{ article.pricePerDay | currency: "DZD ":"symbol":"1.0-0" }}/jour
                     </span>
                   </div>
                 </div>
@@ -193,7 +253,9 @@
                     <div class="flex-1">
                       <h3 class="font-medium text-gray-900 text-sm">{{ article.name }}</h3>
                       <p class="text-xs text-gray-500">
-                        Stock: {{ article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal }} / {{ article.quantityTotal }}
+                        Stock:
+                        {{ article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal }} /
+                        {{ article.quantityTotal }}
                       </p>
                     </div>
                   </div>
@@ -204,27 +266,43 @@
                       <label class="block text-xs text-gray-500 mb-1">Quantité</label>
                       <div class="flex items-center border border-gray-300 rounded overflow-hidden w-full">
                         <!-- Minus Button -->
-                        <button type="button" (click)="decreaseQuantity(article)" [disabled]="article.tempQuantity <= 1"
-                          class="flex items-center justify-center w-10 h-10 bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed border-r border-gray-300 transition-colors">
+                        <button
+                          type="button"
+                          (click)="decreaseQuantity(article)"
+                          [disabled]="article.tempQuantity <= 1"
+                          class="flex items-center justify-center w-10 h-10 bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed border-r border-gray-300 transition-colors"
+                        >
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                           </svg>
                         </button>
 
                         <!-- Quantity Input -->
-                        <input type="number" [(ngModel)]="article.tempQuantity"
-                          (input)="onQuantityInput(article, $event)" (blur)="validateQuantity(article)" min="1"
+                        <input
+                          type="number"
+                          [(ngModel)]="article.tempQuantity"
+                          (input)="onQuantityInput(article, $event)"
+                          (blur)="validateQuantity(article)"
+                          min="1"
                           [max]="article.quantityTotal"
                           class="flex-1 text-center text-sm py-2 border-0 focus:ring-0 focus:outline-none bg-white no-arrows"
-                          style="-moz-appearance: textfield; -webkit-appearance: none; margin: 0;">
+                          style="-moz-appearance: textfield; -webkit-appearance: none; margin: 0;"
+                        />
 
                         <!-- Plus Button -->
-                        <button type="button" (click)="increaseQuantity(article)"
+                        <button
+                          type="button"
+                          (click)="increaseQuantity(article)"
                           [disabled]="article.tempQuantity >= article.quantityTotal"
-                          class="flex items-center justify-center w-10 h-10 bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed border-l border-gray-300 transition-colors">
+                          class="flex items-center justify-center w-10 h-10 bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed border-l border-gray-300 transition-colors"
+                        >
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            ></path>
                           </svg>
                         </button>
                       </div>
@@ -234,9 +312,13 @@
                     <style>
                       /* Hide number input arrows in Chrome, Safari, Edge */
                     </style>
-                    <button (click)="addArticleToReservation(article)"
-                      [disabled]="!article.tempQuantity || article.tempQuantity < 1 || article.tempQuantity > article.quantityTotal"
-                      class="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <button
+                      (click)="addArticleToReservation(article)"
+                      [disabled]="
+                        !article.tempQuantity || article.tempQuantity < 1 || article.tempQuantity > article.quantityTotal
+                      "
+                      class="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
                       Ajouter
                     </button>
                   </div>
@@ -261,39 +343,31 @@
       <div class="bg-white rounded-lg w-full max-w-sm">
         <div class="p-4">
           <div class="flex items-center mb-3">
-            <div class="flex-shrink-0">
-              <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
-            </div>
-            <div class="ml-2">
-              <h3 class="text-base font-medium text-gray-900">Erreur</h3>
-            </div>
+            <div class="flex-shrink-0"><i class="fas fa-exclamation-circle text-red-500 text-lg"></i></div>
+            <div class="ml-2"><h3 class="text-base font-medium text-gray-900">Erreur</h3></div>
           </div>
           <div class="mb-3">
-            <p class="text-xs text-gray-500">
-              {{ errorMessage }}
-            </p>
+            <p class="text-xs text-gray-500">{{ errorMessage }}</p>
           </div>
           <div class="flex justify-end space-x-2">
-            <button (click)="showErrorModal = false" 
-                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-red-500">
+            <button
+              (click)="showErrorModal = false"
+              class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-red-500"
+            >
               OK
             </button>
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- Past Date Confirmation Modal -->
     <div *ngIf="showPastDateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
       <div class="bg-white rounded-lg w-full max-w-sm">
         <div class="p-4">
           <div class="flex items-center mb-3">
-            <div class="flex-shrink-0">
-              <i class="fas fa-exclamation-triangle text-yellow-500 text-lg"></i>
-            </div>
-            <div class="ml-2">
-              <h3 class="text-base font-medium text-gray-900">Date dans le passé</h3>
-            </div>
+            <div class="flex-shrink-0"><i class="fas fa-exclamation-triangle text-yellow-500 text-lg"></i></div>
+            <div class="ml-2"><h3 class="text-base font-medium text-gray-900">Date dans le passé</h3></div>
           </div>
           <div class="mb-3">
             <p class="text-xs text-gray-500">
@@ -301,19 +375,32 @@
             </p>
           </div>
           <div class="flex justify-end space-x-2">
-            <button (click)="cancelPastDateReservation()" 
-                    class="px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500"
-                    [disabled]="submitting">
+            <button
+              (click)="cancelPastDateReservation()"
+              class="px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500"
+              [disabled]="submitting"
+            >
               Annuler
             </button>
-            <button (click)="confirmPastDateReservation()" 
-                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500"
-                    [disabled]="submitting">
+            <button
+              (click)="confirmPastDateReservation()"
+              class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500"
+              [disabled]="submitting"
+            >
               <span *ngIf="!submitting">Continuer</span>
               <span *ngIf="submitting" class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg
+                  class="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Création...
               </span>
@@ -322,27 +409,23 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Success Modal -->
     <div *ngIf="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
       <div class="bg-white rounded-lg w-full max-w-sm">
         <div class="p-4">
           <div class="flex items-center mb-3">
-            <div class="flex-shrink-0">
-              <i class="fas fa-check-circle text-green-500 text-lg"></i>
-            </div>
-            <div class="ml-2">
-              <h3 class="text-base font-medium text-gray-900">Succès</h3>
-            </div>
+            <div class="flex-shrink-0"><i class="fas fa-check-circle text-green-500 text-lg"></i></div>
+            <div class="ml-2"><h3 class="text-base font-medium text-gray-900">Succès</h3></div>
           </div>
           <div class="mb-3">
-            <p class="text-xs text-gray-500">
-              {{ successMessage }}
-            </p>
+            <p class="text-xs text-gray-500">{{ successMessage }}</p>
           </div>
           <div class="flex justify-end space-x-2">
-            <button (click)="closeSuccessModal()" 
-                    class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500">
+            <button
+              (click)="closeSuccessModal()"
+              class="inline-flex justify-center py-1.5 px-3 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500"
+            >
               OK
             </button>
           </div>
@@ -351,13 +434,14 @@
     </div>
   </main>
 
-<!-- Modal de création de client -->
-<app-create-client-modal 
-  [isVisible]="showCreateClientModal" 
-  (close)="closeCreateClientModal()" 
-  (clientCreated)="onClientCreated($event)">
-</app-create-client-modal>
- 
+  <!-- Modal de création de client -->
+  <app-create-client-modal
+    [isVisible]="showCreateClientModal"
+    (close)="closeCreateClientModal()"
+    (clientCreated)="onClientCreated($event)"
+  >
+  </app-create-client-modal>
+
   <!-- Slide-out Drawer for Reservation Summary -->
   <div class="fixed inset-0 z-40" *ngIf="isDrawerOpen" (click)="closeDrawer()">
     <!-- Overlay -->
@@ -366,17 +450,22 @@
     <!-- Drawer -->
     <div
       class="absolute right-0 top-0 h-full w-full sm:w-96 md:w-[28rem] lg:w-[32rem] bg-white shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col"
-      [class.translate-x-0]="isDrawerOpen" [class.translate-x-full]="!isDrawerOpen" (click)="$event.stopPropagation()">
-
+      [class.translate-x-0]="isDrawerOpen"
+      [class.translate-x-full]="!isDrawerOpen"
+      (click)="$event.stopPropagation()"
+    >
       <!-- Drawer Header (Fixed) -->
       <div
-        class="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+        class="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50"
+      >
         <div>
           <h2 class="text-xl font-semibold text-gray-900">Résumé de Réservation</h2>
           <p class="text-sm text-gray-600 mt-1">Gérez vos articles sélectionnés</p>
         </div>
-        <button (click)="closeDrawer()"
-          class="text-gray-400 hover:text-gray-600 p-2 rounded-full transition-colors duration-200">
+        <button
+          (click)="closeDrawer()"
+          class="text-gray-400 hover:text-gray-600 p-2 rounded-full transition-colors duration-200"
+        >
           <i class="fas fa-times text-lg"></i>
         </button>
       </div>
@@ -385,20 +474,24 @@
       <div class="flex-1 overflow-y-auto p-4">
         <!-- Selected Items -->
         <div class="space-y-3 mb-4">
-          <div *ngFor="let item of reservationItems; let i = index"
-            class="grid grid-cols-12 gap-2 items-center text-sm border-b border-gray-100 pb-3">
-
+          <div
+            *ngFor="let item of reservationItems; let i = index"
+            class="grid grid-cols-12 gap-2 items-center text-sm border-b border-gray-100 pb-3"
+          >
             <div class="col-span-6">
               <div class="font-medium text-gray-900">{{ item.article?.name }}</div>
-              <div class="text-xs text-gray-500">{{ item.article?.pricePerDay | currency:'DZD ':'symbol':'1.0-0' }}/jour
-              </div>
+              <div class="text-xs text-gray-500">{{ item.article?.pricePerDay | currency: "DZD ":"symbol":"1.0-0" }}/jour</div>
             </div>
 
-            <input type="number" [(ngModel)]="item.quantity" min="1"
-              class="col-span-3 px-2 py-1 text-center border border-gray-300 rounded text-xs">
+            <input
+              type="number"
+              [(ngModel)]="item.quantity"
+              min="1"
+              class="col-span-3 px-2 py-1 text-center border border-gray-300 rounded text-xs"
+            />
 
             <div class="col-span-2 text-right font-medium">
-              {{ (item.article?.pricePerDay || 0) * item.quantity | currency:'DZD ':'symbol':'1.0-0' }}
+              {{ (item.article?.pricePerDay || 0) * item.quantity | currency: "DZD ":"symbol":"1.0-0" }}
             </div>
 
             <button (click)="removeItem(i)" class="col-span-1 text-red-600 hover:text-red-800">
@@ -418,48 +511,55 @@
         <div class="border-t border-gray-200 pt-4 mb-4" *ngIf="reservationItems.length > 0">
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
-              <span>Sous-total/jour:</span>
-              <span>{{ calculateTotalPrice() | currency:'DZD ':'symbol':'1.0-0' }}</span>
+              <span>Sous-total/jour:</span> <span>{{ calculateTotalPrice() | currency: "DZD ":"symbol":"1.0-0" }}</span>
             </div>
             <div class="flex justify-between">
-              <span>Durée:</span>
-              <span>{{ calculateDays() }} jour{{ calculateDays() !== 1 ? 's' : '' }}</span>
+              <span>Durée:</span> <span>{{ calculateDays() }} jour{{ calculateDays() !== 1 ? "s" : "" }}</span>
             </div>
             <div class="flex justify-between items-center font-semibold text-lg border-t pt-2">
               <span>Total:</span>
-              <span class="text-blue-600">{{ calculateTotalPrice() * calculateDays() | currency:'DZD ':'symbol':'1.0-0'
-                }}</span>
+              <span class="text-blue-600">{{
+                calculateTotalPrice() * calculateDays() | currency: "DZD ":"symbol":"1.0-0"
+              }}</span>
             </div>
           </div>
 
-          <p class="text-xs text-gray-500 mt-2">
-            Taxes et frais calculés à la finalisation.
-          </p>
+          <p class="text-xs text-gray-500 mt-2">Taxes et frais calculés à la finalisation.</p>
         </div>
       </div>
 
       <!-- Drawer Footer (Fixed) -->
       <div class="bg-white border-t border-gray-200 p-4 flex-shrink-0">
         <div *ngIf="reservationItems.length > 0" class="space-y-3">
-          <button type="submit" (click)="onSubmit()" [disabled]="!selectedClientId || submitting"
-            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium">
-            <span *ngIf="!submitting">Sauvegarder la Réservation</span>
-            <span *ngIf="submitting">Création en cours...</span>
-          </button>
+        
 
-          <div class="grid grid-cols-2 gap-2">
-            <button class="text-xs bg-gray-100 text-gray-700 py-2 px-3 rounded hover:bg-gray-200">
-              Sauver & Imprimer
-            </button>
-            <button class="text-xs bg-gray-100 text-gray-700 py-2 px-3 rounded hover:bg-gray-200">
+          <div class="text-center flex space-x-2">
+            <!-- <button
+              [disabled]="!selectedClientId || submitting"
+              (click)="downloadReservationPDF()"
+              class="w-1/2 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+            >
               Sauver & PDF
+            </button> -->  <button
+            type="submit"
+            (click)="onSubmit()"
+            [disabled]="!selectedClientId || submitting"
+            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+          >
+            <span *ngIf="!submitting">Sauvegarder la Réservation</span> <span *ngIf="submitting">Création en cours...</span>
+          </button>
+            <button
+              [disabled]="!selectedClientId || submitting"
+              (click)="printReservation()"
+              class="w-1/2 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+            >
+              Imprimer
             </button>
           </div>
         </div>
 
         <div *ngIf="reservationItems.length === 0" class="text-center">
-          <button (click)="closeDrawer()"
-            class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200">
+          <button (click)="closeDrawer()" class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200">
             Fermer
           </button>
         </div>

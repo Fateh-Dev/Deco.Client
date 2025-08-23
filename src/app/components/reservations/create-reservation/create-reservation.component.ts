@@ -15,6 +15,17 @@ import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CreateClientModalComponent } from '../create-client-modal/create-client-modal.component';
 import { ArticleAvailability } from '../../../models/article-availability';
+import { ReservationPdfService } from '../reservation-pdf.service';
+
+// Import pdfMake as a global variable to avoid TypeScript errors
+// Properly declare pdfMake with its methods
+declare const pdfMake: {
+  createPdf: (documentDefinition: any) => {
+    open: () => void;
+    print: () => void;
+    download: (filename?: string) => void;
+  };
+};
 
 // Extended Article interface for UI purposes
 interface ArticleWithTemp extends Article {
@@ -30,6 +41,18 @@ interface ArticleWithTemp extends Article {
   styleUrls: ['./create-reservation.component.scss']
 })
 export class CreateReservationComponent implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private articleService: ArticleService,
+    private clientService: ClientService,
+    private categoryService: CategoryService,
+    private reservationService: ReservationService,
+    private toastr: ToastrService, // Inject ToastrService
+    private reservationPdfService: ReservationPdfService // Inject PDF Service
+  ) {
+    // Dynamically load pdfMake and fonts to avoid TypeScript errors
+    // The scripts should be included in angular.json or index.html
+  }
   @Output() reservationCreated = new EventEmitter<Reservation>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -67,14 +90,7 @@ export class CreateReservationComponent implements OnInit {
   // Client modal state
   showCreateClientModal = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private articleService: ArticleService,
-    private clientService: ClientService,
-    private categoryService: CategoryService,
-    private reservationService: ReservationService,
-    private toastr: ToastrService // Inject ToastrService
-  ) { }
+  // Constructor moved above
   
   // Méthode pour ouvrir le modal de création de client
   openCreateClientModal(): void {
@@ -585,6 +601,7 @@ export class CreateReservationComponent implements OnInit {
           this.successMessage = 'Votre réservation a été mise à jour avec succès!';
           this.showSuccessModal = true;
           
+          this.printReservation();
           this.reservationCreated.emit(updatedReservation);
         },
         error: (err) => {
@@ -604,7 +621,7 @@ export class CreateReservationComponent implements OnInit {
           // Show success modal
           this.successMessage = 'Votre réservation a été créée avec succès!';
           this.showSuccessModal = true;
-          
+          this.printReservation();
           this.reservationCreated.emit(createdReservation);
         },
         error: (err) => {
@@ -685,4 +702,154 @@ export class CreateReservationComponent implements OnInit {
   successMessage = '';
   showErrorModal = false;
   errorMessage = '';
+  
+  // Method to print the reservation directly
+  printReservation(): void {
+    if (!this.selectedClientId) {
+      this.toastr.error('Client non sélectionné');
+      return;
+    }
+    
+    // Get the client for PDF generation
+    this.clientService.getClient(this.selectedClientId).subscribe({
+      next: (client) => {
+        // Create PDF data from form
+        const pdfData = this.reservationPdfService.createPdfDataFromForm(
+          client,
+          this.startDateString,
+          this.endDateString,
+          this.remarques,
+          this.reservationItems,
+          this.calculateDays(),
+          this.editReservationId || undefined,
+          this.isEditMode
+        );
+        
+        // Print the PDF
+        this.reservationPdfService.printPDF(pdfData);
+      },
+      error: (err) => {
+        console.error('Error fetching client for PDF:', err);
+        this.toastr.error('Erreur lors de la génération du PDF');
+      }
+    });
+  }
+  
+  // Method to download the reservation as PDF
+  downloadReservationPDF(): void {
+    if (!this.selectedClientId) {
+      this.toastr.error('Client non sélectionné');
+      return;
+    }
+    
+    // Get the client for PDF generation
+    this.clientService.getClient(this.selectedClientId).subscribe({
+      next: (client) => {
+        // Create PDF data from form
+        const pdfData = this.reservationPdfService.createPdfDataFromForm(
+          client,
+          this.startDateString,
+          this.endDateString,
+          this.remarques,
+          this.reservationItems,
+          this.calculateDays(),
+          this.editReservationId || undefined,
+          this.isEditMode
+        );
+        
+        // Download the PDF
+        this.reservationPdfService.downloadPDF(pdfData);
+      },
+      error: (err) => {
+        console.error('Error fetching client for PDF:', err);
+        this.toastr.error('Erreur lors de la génération du PDF');
+      }
+    });
+  }
+  
+  // Enhanced save and print method
+  saveAndPrintReservation(): void {
+    const startDate = this.parseDate(this.startDateString);
+    const endDate = this.parseDate(this.endDateString);
+
+    if (!this.selectedClientId || !startDate || !endDate || this.reservationItems.length === 0) {
+      this.toastr.error('Veuillez remplir tous les champs obligatoires et sélectionner au moins un article');
+      return;
+    }
+
+    // Check PDF availability before proceeding
+    if (!this.reservationPdfService.isPdfMakeAvailable()) {
+      this.toastr.error('PDF generation is not available. The reservation will be saved without PDF.');
+      // You can still proceed with saving without PDF if needed
+      // this.onSubmit();
+      return;
+    }
+
+    // Check if the start date is in the past
+    if (this.checkForPastDate()) {
+      this.showPastDateModal = true;
+      return;
+    }
+
+    // Create reservation request
+    const reservationRequest: CreateReservationRequest = {
+      clientId: this.selectedClientId!,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      remarques: this.remarques,
+      reservationItems: this.reservationItems.map(item => ({
+        articleId: item.articleId,
+        quantity: item.quantity
+      }))
+    };
+
+    this.submitting = true;
+    this.error = null;
+
+    const handleSuccess = (reservation: Reservation, isUpdate: boolean) => {
+      this.submitting = false;
+      const action = isUpdate ? 'mise à jour' : 'création';
+      this.toastr.success(`Réservation ${isUpdate ? 'mise à jour' : 'créée'} avec succès!`);
+      
+      // Get the client for PDF generation
+      if (this.selectedClientId) {
+        this.clientService.getClient(this.selectedClientId).subscribe({
+          next: (client) => {
+            // Generate PDF with the reservation-pdf service
+            const pdfData = this.reservationPdfService.createPdfDataFromReservation(
+              reservation,
+              client,
+              this.calculateDays(),
+              isUpdate
+            );
+            
+            // Generate and view the PDF
+            setTimeout(() => {
+              this.reservationPdfService.viewPDF(pdfData);
+            }, 500);
+          },
+          error: (err) => {
+            console.error('Error fetching client for PDF:', err);
+            this.toastr.error('Erreur lors de la génération du PDF');
+          }
+        });
+      }
+      
+      this.reservationCreated.emit(reservation);
+    };
+
+    if (this.isEditMode && this.editReservationId) {
+      // Update existing reservation
+      this.reservationService.updateReservation(this.editReservationId, reservationRequest).subscribe({
+        next: (updatedReservation) => handleSuccess(updatedReservation, true),
+        error: (err) => this.handleSubmitError(err, 'mise à jour')
+      });
+    } else {
+      // Create new reservation
+      this.reservationService.createReservation(reservationRequest).subscribe({
+        next: (createdReservation) => handleSuccess(createdReservation, false),
+        error: (err) => this.handleSubmitError(err, 'création')
+      });
+    }
+  }
 }
