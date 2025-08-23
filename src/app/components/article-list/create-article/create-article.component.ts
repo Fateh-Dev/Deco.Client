@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpEventType } from '@angular/common/http';
 import { FileUploadService } from '../../../services/file-upload.service';
+import { CategoryService } from '../../../services/category.service';
 import { Article } from '../../../models/article';
 import { Category } from '../../../models/category';
 
@@ -53,6 +54,15 @@ export class CreateArticleComponent {
   uploadError: string | null = null;
   previewUrl: string | ArrayBuffer | null = null;
   isEditMode: boolean = false;
+  
+  // Category modal properties
+  isCategoryModalOpen = false;
+  categoryError = '';
+  categorySuccessMessage = '';
+  categoryForm: Category = {
+    id: 0,
+    name: ''
+  };
 
   newArticle = {
     id: undefined as number | undefined,
@@ -65,7 +75,10 @@ export class CreateArticleComponent {
     isActive: true
   };
 
-  constructor(private fileUploadService: FileUploadService) {}
+  constructor(
+    private fileUploadService: FileUploadService,
+    private categoryService: CategoryService
+  ) {}
 
   private resetForm(): void {
     this.newArticle = {
@@ -225,5 +238,62 @@ export class CreateArticleComponent {
            this.newArticle.categoryId !== undefined && // Category is required
            (this.newArticle.quantityTotal ?? 0) > 0 && // Quantity must be positive
            (this.newArticle.pricePerDay ?? 0) >= 0; // Price can't be negative
+  }
+  
+  // Category modal methods
+  openCategoryModal(): void {
+    this.isCategoryModalOpen = true;
+    this.resetCategoryForm();
+  }
+  
+  closeCategoryModal(): void {
+    this.isCategoryModalOpen = false;
+    this.resetCategoryForm();
+    this.categoryError = '';
+  }
+  
+  resetCategoryForm(): void {
+    this.categoryForm = {
+      id: 0,
+      name: ''
+    };
+  }
+  
+  saveCategory(): void {
+    if (!this.categoryForm.name.trim()) {
+      this.categoryError = 'Category name is required.';
+      return;
+    }
+    
+    this.categoryError = '';
+    
+    const newCategory: Category = {
+      id: 0, // Will be set by backend
+      name: this.categoryForm.name.trim() 
+    };
+    
+    this.categoryService.createCategory(newCategory).subscribe({
+      next: (createdCategory) => {
+        this.showCategorySuccessMessage('Category created successfully!');
+        this.closeCategoryModal();
+        
+        // Add the new category to the categories list
+        this.categories.push(createdCategory);
+        
+        // Select the newly created category
+        this.newArticle.categoryId = createdCategory.id;
+      },
+      error: (error) => {
+        this.categoryError = 'Failed to create category. Please try again.';
+        console.error('Error creating category:', error);
+      }
+    });
+  }
+  
+  showCategorySuccessMessage(message: string): void {
+    this.categorySuccessMessage = message;
+    setTimeout(() => {
+      this.categorySuccessMessage = '';
+    }, 3000);
   }
 }

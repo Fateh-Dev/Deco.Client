@@ -32,6 +32,11 @@ export class ArticleListComponent implements OnInit {
   showFilters = false; // Controls visibility of category filters
   editingArticle: Article | null = null;
   
+  // Success message state
+  successMessage = '';
+  showSuccessMessage = false;
+  showSuccessModal = false;
+  
   // Delete modal state
   showDeleteModal = false;
   articleToDelete: Article | null = null;
@@ -247,9 +252,13 @@ export class ArticleListComponent implements OnInit {
       this.articleService.updateArticle(article.id!, article).subscribe({
         next: (updatedArticle) => {
           console.log('Article updated successfully:', updatedArticle);
+          // Close the modal immediately
+          this.closeCreateModal();
+          // Show success message in modal
+          this.successMessage = 'Article mis à jour avec succès!';
+          this.showSuccessModal = true;
           // Refresh the articles list to get the latest data
           this.loadArticles();
-          this.closeCreateModal();
         },
         error: (error) => {
           console.error('Error updating article:', error);
@@ -261,9 +270,13 @@ export class ArticleListComponent implements OnInit {
       this.articleService.createArticle(article).subscribe({
         next: (createdArticle) => {
           console.log('Article created successfully:', createdArticle);
+          // Close the modal immediately
+          this.closeCreateModal();
+          // Show success message in modal
+          this.successMessage = 'Article créé avec succès!';
+          this.showSuccessModal = true;
           // Refresh the articles list to include the new article
           this.loadArticles();
-          this.closeCreateModal();
         },
         error: (error) => {
           console.error('Error creating article:', error);
@@ -271,6 +284,10 @@ export class ArticleListComponent implements OnInit {
         }
       });
     }
+  }
+  
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
   }
 
   deleteArticle(id: number): void {
