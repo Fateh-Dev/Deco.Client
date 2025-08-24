@@ -162,14 +162,14 @@ export class CalendarComponent implements OnInit {
       days: days
     };
     
-    console.log('Calendar generated:', {
-      month: this.monthNames[month],
-      year: year,
-      totalDays: days.length,
-      currentMonthDays: days.filter(d => d.isCurrentMonth).length,
-      firstDay: days.find(d => d.isCurrentMonth)?.date,
-      lastDay: days.filter(d => d.isCurrentMonth).pop()?.date
-    });
+    //console.log('Calendar generated:', {
+    //   month: this.monthNames[month],
+    //   year: year,
+    //   totalDays: days.length,
+    //   currentMonthDays: days.filter(d => d.isCurrentMonth).length,
+    //   firstDay: days.find(d => d.isCurrentMonth)?.date,
+    //   lastDay: days.filter(d => d.isCurrentMonth).pop()?.date
+    // });
   }
 
   // Keep the existing generateCalendar method as fallback but fix it
@@ -426,7 +426,7 @@ export class CalendarComponent implements OnInit {
       })
     };
 
-    console.log('Exporting calendar data:', exportData);
+    //console.log('Exporting calendar data:', exportData);
     alert(`🗓️ Export du calendrier ${this.currentMonth.monthName} ${this.currentMonth.year}\n\nDonnées préparées pour l'export. Fonctionnalité en cours de développement.`);
   }
 
@@ -494,7 +494,7 @@ export class CalendarComponent implements OnInit {
   // Fixed sections of calendar.component.ts
 
   mapApiDataToCalendar(apiData: any, year: number, month: number): void {
-    console.log('Mapping API data for:', year, month + 1);
+    //console.log('Mapping API data for:', year, month + 1);
     
     // Extract reservations from API data with deduplication
     const reservationMap = new Map<number, Reservation>();
@@ -532,7 +532,7 @@ export class CalendarComponent implements OnInit {
         // Try to use API calendar data, fallback to manual generation
         this.reservationService.getCalendarData(year, month + 1).subscribe({
           next: (data) => {
-            console.log('API Calendar data received:', data);
+            //console.log('API Calendar data received:', data);
             this.mapApiDataToCalendar(data, year, month);
             this.loading = false;
           },
@@ -600,7 +600,7 @@ export class CalendarComponent implements OnInit {
 
   // Enhanced debugging method
   private debugReservations(): void {
-    console.log('Total reservations loaded:', this.reservations.length);
+    //console.log('Total reservations loaded:', this.reservations.length);
     
     // Check for duplicates by ID
     const ids = this.reservations.map(r => r.id);
@@ -626,6 +626,6 @@ export class CalendarComponent implements OnInit {
       reservationsByDate.get(dateKey)!.push(reservation);
     });
     
-    console.log('Reservations by date:', Object.fromEntries(reservationsByDate));
+    //console.log('Reservations by date:', Object.fromEntries(reservationsByDate));
   }
 }

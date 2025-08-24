@@ -107,15 +107,15 @@ export class ArticleListComponent implements OnInit {
 
   toggleSortOrder(): void {
     this.isSortDescending = !this.isSortDescending;
-    console.log('Toggle sort order to:', this.isSortDescending ? 'Z-A' : 'A-Z');
+    //console.log('Toggle sort order to:', this.isSortDescending ? 'Z-A' : 'A-Z');
     this.filterArticles();
   }
 
   private filterArticles(): void {
-    console.log('=== Starting filterArticles ===');
-    console.log('All articles:', this.allArticles.length);
-    console.log('Categories loaded:', this.categories.length);
-    console.log('Sort descending:', this.isSortDescending);
+    //console.log('=== Starting filterArticles ===');
+    //console.log('All articles:', this.allArticles.length);
+    //console.log('Categories loaded:', this.categories.length);
+    //console.log('Sort descending:', this.isSortDescending);
     
     let result = [...this.allArticles];
 
@@ -126,19 +126,19 @@ export class ArticleListComponent implements OnInit {
         article.name.toLowerCase().includes(searchLower) ||
         (article.description && article.description.toLowerCase().includes(searchLower))
       );
-      console.log('After search filter:', result.length);
+      //console.log('After search filter:', result.length);
     }
 
     // Apply category filter
     if (this.selectedCategoryId !== null) {
       result = result.filter(article => article.categoryId === this.selectedCategoryId);
-      console.log('After category filter:', result.length);
+      //console.log('After category filter:', result.length);
     }
 
     // Sort articles by category name first, then by article name
     this.filteredArticles = this.sortArticlesByCategory(result);
-    console.log('Final sorted articles:', this.filteredArticles.length);
-    console.log('=== End filterArticles ===');
+    //console.log('Final sorted articles:', this.filteredArticles.length);
+    //console.log('=== End filterArticles ===');
   }
 
   private sortArticlesByCategory(articles: Article[]): Article[] {
@@ -188,7 +188,7 @@ export class ArticleListComponent implements OnInit {
     this.loading = true;
     this.articleService.getArticles().subscribe({
       next: (articles) => {
-        console.log('Articles loaded:', articles);
+        //console.log('Articles loaded:', articles);
         this.allArticles = articles;
         // Only filter if categories are already loaded
         if (this.categories.length > 0) {
@@ -206,7 +206,7 @@ export class ArticleListComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getCategories().subscribe({
       next: (categories) => {
-        console.log('Categories loaded:', categories);
+        //console.log('Categories loaded:', categories);
         this.categories = categories;
         // Re-filter articles after categories are loaded
         if (this.allArticles.length > 0) {
@@ -238,20 +238,20 @@ export class ArticleListComponent implements OnInit {
   }
 
   onArticleCreated(article: Article): void {
-    console.log('Article to save:', article);
-    console.log('Currently editing article:', this.editingArticle);
+    //console.log('Article to save:', article);
+    //console.log('Currently editing article:', this.editingArticle);
     
     // Check if we're in edit mode by looking at the article ID
     const isEditMode = article.id !== undefined && article.id !== null && article.id > 0;
     
-    console.log('Is edit mode:', isEditMode);
-    console.log('Article ID:', article.id);
+    //console.log('Is edit mode:', isEditMode);
+    //console.log('Article ID:', article.id);
     
     if (isEditMode) {
-      console.log('Updating existing article with ID:', article.id);
+      //console.log('Updating existing article with ID:', article.id);
       this.articleService.updateArticle(article.id!, article).subscribe({
         next: (updatedArticle) => {
-          console.log('Article updated successfully:', updatedArticle);
+          //console.log('Article updated successfully:', updatedArticle);
           // Close the modal immediately
           this.closeCreateModal();
           // Show success message in modal
@@ -266,10 +266,10 @@ export class ArticleListComponent implements OnInit {
         }
       });
     } else {
-      console.log('Creating new article');
+      //console.log('Creating new article');
       this.articleService.createArticle(article).subscribe({
         next: (createdArticle) => {
-          console.log('Article created successfully:', createdArticle);
+          //console.log('Article created successfully:', createdArticle);
           // Close the modal immediately
           this.closeCreateModal();
           // Show success message in modal

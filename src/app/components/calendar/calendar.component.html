@@ -6,7 +6,7 @@
       <button (click)="goToPreviousMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
         <i class="fas fa-chevron-left"></i>
       </button>
-      <div class="text-lg font-semibold px-4">{{ currentMonth?.monthName || '' }} {{ currentMonth?.year || '' }}</div>
+      <div class="text-lg font-semibold px-4">{{ currentMonth.monthName || '' }} {{ currentMonth.year || '' }}</div>
       <button (click)="goToNextMonth()" class="p-2 bg-white border rounded hover:bg-gray-50">
         <i class="fas fa-chevron-right"></i>
       </button>
@@ -104,7 +104,7 @@
 <div *ngIf="showDayModal && selectedDay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" (click)="closeDayModal()">
   <div class="bg-white rounded p-6 max-w-md w-full max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
-      <h3 class="font-semibold">{{ selectedDay.day }} {{ currentMonth?.monthName || '' }}</h3>
+      <h3 class="font-semibold">{{ selectedDay.day }} {{ currentMonth.monthName || '' }}</h3>
       <button (click)="closeDayModal()" class="text-gray-400"><i class="fas fa-times"></i></button>
     </div>
     
