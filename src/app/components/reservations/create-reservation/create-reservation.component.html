@@ -92,98 +92,100 @@
   <!-- Main Layout -->
   <main class="w-full px-2 sm:px-2 lg:px-4 py-4 flex-1 overflow-hidden min-h-0" *ngIf="!loading">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 h-full">
-      <!-- LEFT: Client & Event Details -->
-      <aside class="lg:col-span-1">
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-6">Client & Événement</h2>
+    <!-- LEFT: Client & Event Details -->
+<aside class="lg:col-span-1.5"> <!-- réduit la largeur -->
+  <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div class="p-4">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Client & Événement</h2>
 
-            <div class="space-y-6">
-              <!-- Client Selection -->
-              <div>
-                <label for="client" class="block text-sm font-medium text-gray-700 mb-2">
-                  Sélectionner un client <span class="text-red-500">*</span>
-                </label>
-                <div class="flex space-x-2">
-                  <select
-                    id="client"
-                    [(ngModel)]="selectedClientId"
-                    required
-                    class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option [ngValue]="null">Choisir un client...</option>
-                    <option *ngFor="let client of clients" [ngValue]="client.id">
-                      {{ client.name }} ({{ client.phone }})
-                    </option>
-                  </select>
-                  <button
-                    type="button"
-                    (click)="openCreateClientModal()"
-                    class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </div>
+      <div class="space-y-4">
+        <!-- Client Selection -->
+        <div>
+          <label for="client" class="block text-xs font-medium text-gray-600 mb-1">
+            Sélectionner un client <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="client"
+            [(ngModel)]="selectedClientId"
+            required
+            class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          >
+            <option [ngValue]="null">Choisir un client...</option>
+            <option *ngFor="let client of clients" [ngValue]="client.id">
+              {{ client.name }} ({{ client.phone }})
+            </option>
+          </select>
 
-              <!-- Event Details -->
-              <div class="border-t border-gray-200 pt-6">
-                <h3 class="text-base font-medium text-gray-900 mb-4">Détails de l'événement</h3>
+          <!-- Ajouter client link -->
+          <p
+            (click)="openCreateClientModal()"
+            class="mt-2 text-xs text-blue-600 cursor-pointer hover:underline"
+          >
+            Ajouter un client s’il n’existe pas
+          </p>
+        </div>
 
-                <div class="space-y-4">
-                  <div>
-                    <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">
-                      Date de début <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="startDate"
-                      [(ngModel)]="startDateString"
-                      required
-                      (change)="onDateChange()"
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
+        <!-- Event Details -->
+        <div class="border-t border-gray-200 pt-4">
+          <h3 class="text-sm font-medium text-gray-800 mb-3">Détails de l'événement</h3>
 
-                  <div>
-                    <label for="endDate" class="block text-sm font-medium text-gray-700 mb-2">
-                      Date de retour <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="endDate"
-                      [(ngModel)]="endDateString"
-                      required
-                      [min]="startDateString || getTodayFormatted()"
-                      (change)="onDateChange()"
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Start Date -->
+            <div>
+              <label for="startDate" class="block text-xs font-medium text-gray-600 mb-1">
+                Début <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                [(ngModel)]="startDateString"
+                required
+                (change)="onDateChange()"
+                class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
 
-                  <!-- Remarques Field -->
-                  <div>
-                    <label for="remarques" class="block text-sm font-medium text-gray-700 mb-2"> Remarques </label>
-                    <textarea
-                      id="remarques"
-                      [(ngModel)]="remarques"
-                      rows="3"
-                      placeholder="Ajoutez des notes ou des instructions spéciales..."
-                      class="w-full px-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    ></textarea>
-                  </div>
-
-                  <!-- Duration Display -->
-                  <div class="bg-blue-50 border border-blue-200 p-4 rounded-md">
-                    <div class="text-sm font-medium text-blue-900">
-                      Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? "s" : "" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <!-- End Date -->
+            <div>
+              <label for="endDate" class="block text-xs font-medium text-gray-600 mb-1">
+                Retour <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                [(ngModel)]="endDateString"
+                required
+                [min]="startDateString || getTodayFormatted()"
+                (change)="onDateChange()"
+                class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
             </div>
           </div>
+
+          <!-- Notes -->
+          <div class="mt-3">
+            <label for="remarques" class="block text-xs font-medium text-gray-600 mb-1"> Remarques </label>
+            <textarea
+              id="remarques"
+              [(ngModel)]="remarques"
+              rows="2"
+              placeholder="Notes ou instructions..."
+              class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <!-- Duration Badge -->
+          <div
+            class="mt-3 inline-block bg-blue-50 border border-blue-200 px-3 py-1 rounded text-xs font-medium text-blue-700"
+          >
+            Durée: {{ calculateDays() }} jour{{ calculateDays() !== 1 ? "s" : "" }}
+          </div>
         </div>
-      </aside>
+      </div>
+    </div>
+  </div>
+</aside>
+
 
       <!-- MIDDLE: Item Selector (Now spans 3 columns) -->
       <section class="lg:col-span-3 flex flex-col h-full">
