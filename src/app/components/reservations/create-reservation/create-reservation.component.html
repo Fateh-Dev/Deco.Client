@@ -485,8 +485,10 @@
 
             <input
               type="number"
-              [(ngModel)]="item.quantity"
+              [ngModel]="item.quantity"
+              (ngModelChange)="updateCartItemQuantity(item, $event)"
               min="1"
+              [max]="(item.article?.quantityAvailable || 0) + item.quantity"
               class="col-span-3 px-2 py-1 text-center border border-gray-300 rounded text-xs"
             />
 

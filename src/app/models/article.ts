@@ -6,6 +6,7 @@ export interface Article {
   categoryId: number;
   description?: string;
   quantityTotal: number;
+  quantityAvailable?: number;
   pricePerDay?: number;
   imageUrl?: string;
   createdAt: Date;

@@ -516,6 +516,13 @@ export class CreateReservationComponent implements OnInit {
       return;
     }
 
+    // Update the available quantity
+    if (article.quantityAvailable !== undefined) {
+      article.quantityAvailable -= article.tempQuantity;
+    } else {
+      article.quantityAvailable = article.quantityTotal - article.tempQuantity;
+    }
+
     // Check if article already added
     const existingItem = this.reservationItems.find(item => item.articleId === article.id);
     if (existingItem) {
@@ -537,7 +544,48 @@ export class CreateReservationComponent implements OnInit {
     }
   }
 
+  updateCartItemQuantity(item: any, newQuantity: number): void {
+    if (!newQuantity || newQuantity < 1) {
+      newQuantity = 1;
+    }
+
+    const article = this.articles.find(a => a.id === item.articleId);
+    if (!article) return;
+
+    const maxAvailable = (article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal) + item.quantity;
+    
+    if (newQuantity > maxAvailable) {
+      newQuantity = maxAvailable;
+      this.toastr.warning(`Quantité maximale disponible: ${maxAvailable}`);
+    }
+
+    // Calculate the difference to update the available quantity
+    const quantityDifference = newQuantity - item.quantity;
+    
+    // Update the available quantity
+    if (article.quantityAvailable !== undefined) {
+      article.quantityAvailable -= quantityDifference;
+    } else {
+      article.quantityAvailable = article.quantityTotal - newQuantity;
+    }
+
+    // Update the item quantity
+    item.quantity = newQuantity;
+  }
+
   removeItem(index: number): void {
+    const removedItem = this.reservationItems[index];
+    const article = this.articles.find(a => a.id === removedItem.articleId);
+    
+    // Restore the available quantity when removing from cart
+    if (article) {
+      if (article.quantityAvailable !== undefined) {
+        article.quantityAvailable += removedItem.quantity;
+      } else {
+        article.quantityAvailable = article.quantityTotal;
+      }
+    }
+    
     this.reservationItems.splice(index, 1);
   }
 
