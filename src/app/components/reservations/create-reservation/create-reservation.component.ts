@@ -322,29 +322,33 @@ export class CreateReservationComponent implements OnInit {
 
   increaseQuantity(article: ArticleWithTemp): void {
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
+    
     if (article.tempQuantity < maxAvailable) {
       article.tempQuantity++;
     }
   }
 
-  onQuantityInput(article: ArticleWithTemp, event: any): void {
-    const value = parseInt(event.target.value);
-
-    // Allow empty input for better UX while typing
-    if (event.target.value === '' || isNaN(value)) {
-      return;
-    }
-
+  onQuantityInput(article: ArticleWithTemp, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = parseInt(input.value);
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
     
-    // Real-time validation
-    if (value < 1) {
-      article.tempQuantity = 1;
-    } else if (value > maxAvailable) {
-      article.tempQuantity = maxAvailable;
-    } else {
-      article.tempQuantity = value;
+    // If the value is not a number or is less than 1, set to 1
+    if (isNaN(value) || value < 1) {
+      value = 1;
+      input.value = '1';
     }
+    // If the value is greater than max available, set to max available
+    else if (value > maxAvailable) {
+      value = maxAvailable;
+      input.value = maxAvailable.toString();
+    } else {
+      // If the value is valid, ensure it's an integer
+      value = Math.floor(value);
+      input.value = value.toString();
+    }
+    
+    article.tempQuantity = value;
   }
 
   validateQuantity(article: ArticleWithTemp): void {
