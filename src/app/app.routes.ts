@@ -6,8 +6,12 @@ import { ClientListComponent } from './components/client-list/client-list.compon
 import { CreateReservationComponent } from './components/reservations/create-reservation/create-reservation.component';
 import { CalendarComponent } from './components/calendar/calendar.component';
 import { SettingsComponent } from './components/settings/settings.component';
+import { LoginComponent } from './auth/login.component';
+import { RegisterComponent } from './auth/register.component';
 export const routes: Routes = [
-  { path: '', component: HomePageComponent },
+  { path: '', component: LoginComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   { path: 'home', component: HomePageComponent },
   { path: 'articles', component: ArticleListComponent }, 
   { path: 'reservations', component: ReservationsComponent },

@@ -1,0 +1,129 @@
+/* login.component.css */
+.login-container {
+  @apply min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100;
+}
+
+.login-form {
+  @apply bg-white p-8 rounded-xl shadow-lg;
+}
+
+.input-group {
+  @apply relative;
+}
+
+.input-icon {
+  @apply absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none;
+}
+
+.form-input {
+  @apply block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-sm;
+}
+
+.form-input:focus {
+  @apply ring-2 ring-indigo-500 border-transparent;
+}
+
+.form-input.error {
+  @apply border-red-500;
+}
+
+.btn-primary {
+  @apply w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200;
+}
+
+.btn-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.error-message {
+  @apply bg-red-50 border border-red-200 rounded-lg p-3;
+}
+
+/* register.component.css */
+.register-container {
+  @apply min-h-screen bg-gradient-to-br from-purple-50 to-pink-100;
+}
+
+.register-form {
+  @apply bg-white p-8 rounded-xl shadow-lg;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.password-toggle {
+  @apply text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition duration-200;
+}
+
+.strength-indicator {
+  @apply flex-1 bg-gray-200 rounded-full h-2;
+}
+
+.strength-bar {
+  @apply h-2 rounded-full transition-all duration-300;
+}
+
+.strength-weak {
+  @apply bg-red-500;
+  width: 33%;
+}
+
+.strength-medium {
+  @apply bg-yellow-500;
+  width: 66%;
+}
+
+.strength-strong {
+  @apply bg-green-500;
+  width: 100%;
+}
+
+.btn-secondary {
+  @apply w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200;
+}
+
+.btn-secondary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.checkbox-input {
+  @apply h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded;
+}
+
+.link-primary {
+  @apply text-purple-600 hover:text-purple-500 font-medium transition duration-200;
+}
+
+/* Common animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .login-form,
+  .register-form {
+    @apply p-6;
+  }
+  
+  .form-input {
+    @apply py-2;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    @apply py-2;
+  }
+}

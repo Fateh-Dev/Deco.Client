@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterModule } from '@angular/router';
+import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from './auth/auth.service';
 
 interface NavItem {
   label: string;
@@ -18,6 +19,14 @@ export class AppComponent {
   title = 'LocationDeco.Client';
   isExpanded = false;
 
+  constructor(private router: Router, public auth: AuthService) {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/home']);
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
   navItems: NavItem[] = [
     { label: 'Accueil', route: '/home' },
     { label: 'Calendrier', route: '/calendar' },
@@ -34,5 +43,10 @@ export class AppComponent {
   onCreateReservation(): void {
     console.log('Creating reservation...');
     // Add your reservation creation logic here
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
   }
 }
