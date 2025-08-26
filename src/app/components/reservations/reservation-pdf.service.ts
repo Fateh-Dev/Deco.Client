@@ -27,6 +27,10 @@ export interface ReservationPdfData {
       name: string;
       pricePerDay: number;
       description?: string;
+      category?: {
+        id?: number;
+        name: string;
+      };
     };
   }>;
   reservationId?: number;
@@ -68,182 +72,442 @@ export class ReservationPdfService {
    * Create PDF document definition
    */
 // Option 1: More Professional Business Layout
-private createDocumentDefinitionOption1(data: ReservationPdfData): any {
-  const totalPrice = this.calculateTotalPrice(data.reservationItems);
-  const grandTotal = totalPrice * data.totalDays;
+  private createDocumentDefinitionOption1(data: ReservationPdfData): any {
+    const totalPrice = this.calculateTotalPrice(data.reservationItems);
+    const grandTotal = totalPrice * data.totalDays;
+    const categorySummary = this.calculateCategorySummary(data.reservationItems);
 
-  return {
-    info: {
-      title: `Réservation - ${data.client.name}`,
-      author: 'Location Déco',
-      subject: 'Détails de réservation',
-      keywords: 'réservation, location, décoration'
-    },
-    content: [
-      // Header (compact)
-      {
-        columns: [
-          {
-            width: '60%',
-            stack: [
-              { text: 'LOCATION DÉCO', style: 'companyName', margin: [0, 0, 0, 2] },
-              { text: 'Service de location d\'articles de décoration', style: 'companySubtitle', margin: [0, 0, 0, 5] }
-            ]
-          },
-          {
-            width: '40%',
-            stack: [
-              {
-                text: data.reservationId ?
-                  (data.isEditMode ? `Réservation #${data.reservationId} (Modifiée)` : `Réservation #${data.reservationId}`) :
-                  'Nouvelle Réservation',
-                style: 'reservationNumber',
-                alignment: 'right'
-              },
-              {
-                text: `Date d'émission: ${new Date().toLocaleDateString('fr-FR')}`,
-                style: 'dateEmission',
-                alignment: 'right',
-                margin: [0, 2, 0, 0]
-              }
-            ]
-          }
-        ],
-        margin: [0, 0, 0, 10] // reduced
-      },
+    // Define the document definition with proper TypeScript typing
+    interface PdfStyle {
+      fontSize?: number;
+      bold?: boolean;
+      margin?: number[];
+      color?: string;
+      fillColor?: string;
+      lineHeight?: number;
+      decoration?: string;
+      italics?: boolean;
+      alignment?: string;
+    }
 
-      // Title
-      { text: 'DÉTAILS DE LA RÉSERVATION', style: 'documentTitle', alignment: 'center', margin: [0, 0, 0, 12] },
-
-      // Client and Event Info (reduced spacing)
-      {
-        columns: [
-          {
-            width: '48%',
-            stack: [
-              { text: 'INFORMATIONS CLIENT', style: 'sectionHeader', margin: [0, 0, 0, 4] },
-              { text: `Nom: ${data.client.name}`, margin: [0, 1] },
-              { text: `Téléphone: ${data.client.phone}`, margin: [0, 1] },
-              { text: `Adresse: ${data.client.address || 'Non spécifiée'}`, margin: [0, 1] }
-            ]
-          },
-          { width: '4%', text: '' },
-          {
-            width: '48%',
-            stack: [
-              { text: 'DÉTAILS DE L\'ÉVÉNEMENT', style: 'sectionHeader', margin: [0, 0, 0, 4] },
-              { text: `Date: ${this.formatDate(data.startDate)}`, margin: [0, 1] },
-              { text: `Durée: ${data.totalDays} jour(s)`, margin: [0, 1] },
-              data.remarques ? { text: `Remarques: ${data.remarques}`, style: 'remarks', margin: [0, 3] } : null
-            ].filter(Boolean)
-          }
-        ],
-        margin: [0, 0, 0, 12] // reduced
-      },
-
-      // Articles Table
-      { text: 'ARTICLES RÉSERVÉS', style: 'sectionHeader', margin: [0, 0, 0, 6] },
-      {
-        table: {
-          headerRows: 1,
-          widths: ['*', 'auto', 'auto', 'auto'],
-          body: [
-            [
-              { text: 'Article', style: 'tableHeader' },
-              { text: 'Prix/Jour', style: 'tableHeader' },
-              { text: 'Quantité', style: 'tableHeader' },
-              { text: 'Sous-total', style: 'tableHeader' }
-            ],
-            ...data.reservationItems.map(item => [
-              item.article?.name || 'Article inconnu',
-              `${item.article?.pricePerDay || 0} DZD`,
-              item.quantity.toString(),
-              `${(item.article?.pricePerDay || 0) * item.quantity} DZD`
-            ])
-          ]
-        },
-        layout: 'lightHorizontalLines',
-        margin: [0, 0, 0, 10]
-      },
-
-      // Totals
-      {
-        table: {
-          widths: ['*', 'auto'],
-          body: [
-            ['Total par jour:', `${totalPrice} DZD`],
-            [`Total (${data.totalDays} jour(s)) :`, `${grandTotal} DZD`]
-          ]
-        },
-        layout: 'lightHorizontalLines',
-        margin: [0, 8, 0, 15]
-      },
-
-      // Edit mode footer
-      data.isEditMode ? {
-        text: `Modifié le: ${new Date().toLocaleString('fr-FR')}`,
-        alignment: 'right',
-        fontSize: 8,
-        italics: true,
-        margin: [0, 5, 0, 0]
-      } : null,
-
-      // Terms at very bottom
-      {
-        text: 'CONDITIONS DE RÉSERVATION',
-        style: 'termsTitle',
-        margin: [0, 20, 0, 3]
-      },
-      {
-        ul: [
-          'La réservation est confirmée après paiement d\'un acompte de 30% du montant total.',
-          // 'Le solde doit être réglé au plus tard le jour de la livraison.',
-          // 'En cas d\'annulation moins de 15 jours avant l\'événement, l\'acompte n\'est pas remboursable.',
-          'Les articles doivent être retournés dans l\'état où ils ont été livrés.'
-        ],
-        style: 'termsText',
-        margin: [0, 0, 0, 10]
-      }
-
-    ].filter(Boolean),
-
-    footer: (currentPage: number, pageCount: number) => {
-      return {
-        columns: [
-          { text: 'Location Déco - Service de location d\'articles de décoration', alignment: 'center', fontSize: 8 },
-          { text: `Page ${currentPage} sur ${pageCount}`, alignment: 'right', fontSize: 8 }
-        ],
-        margin: [40, 10]
+    interface PdfDocumentDefinition {
+      pageSize: string;
+      pageOrientation: string;
+      pageMargins: number[];
+      info: {
+        title: string;
+        author: string;
+        subject: string;
+        keywords: string;
       };
-    },
+      defaultStyle: PdfStyle;
+      content: any[];
+      styles?: Record<string, PdfStyle>;
+      footer?: (currentPage: number, pageCount: number) => any;
+    }
 
-    styles: {
-      companyName: { fontSize: 16, bold: true },
-      companySubtitle: { fontSize: 9 },
-      documentTitle: { fontSize: 13, bold: true },
-      reservationNumber: { fontSize: 12, bold: true },
-      dateEmission: { fontSize: 8 },
-      sectionHeader: { fontSize: 11, bold: true, decoration: 'underline' },
-      tableHeader: { bold: true, fontSize: 10 },
-      remarks: { fontSize: 8, italics: true },
-      termsTitle: { fontSize: 8, bold: true },
-      termsText: { fontSize: 7 }
-    },
+    // Define styles
+    const styles: Record<string, PdfStyle> = {
+      header: {
+        fontSize: 14,
+        bold: true,
+        margin: [0, 0, 0, 2]
+      },
+      subheader: {
+        fontSize: 10,
+        margin: [0, 0, 0, 1]
+      },
+      companyName: {
+        fontSize: 12,
+        bold: true,
+        margin: [0, 0, 0, 1]
+      },
+      companyInfo: {
+        fontSize: 8,
+        margin: [0, 0, 0, 1]
+      },
+      sectionHeader: {
+        fontSize: 10,
+        bold: true,
+        margin: [0, 5, 0, 3],
+        color: '#000',
+        decoration: 'underline'
+      },
+      infoText: {
+        fontSize: 9,
+        margin: [0, 1, 0, 1]
+      },
+      tableHeader: {
+        bold: true,
+        fontSize: 7.5,
+        color: '#333333',
+        fillColor: '#f8f8f8',
+        margin: [0, 1, 0, 1],
+        lineHeight: 1
+      },
+      itemName: {
+        fontSize: 7.5,
+        margin: [0, 0, 0, 0],
+        lineHeight: 1
+      },
+      itemCategory: {
+        fontSize: 8,
+        color: '#666',
+        margin: [0, 2, 0, 2]
+      },
+      totalLabel: {
+        bold: true,
+        fontSize: 10,
+        margin: [5, 0, 0, 0]
+      },
+      totalGeneral: {
+        bold: true,
+        fontSize: 9,
+        margin: [0, 1, 0, 1],
+        lineHeight: 1,
+        color: '#000000',
+        fillColor: '#f0f0f0'
+      },
+      totalValue: {
+        bold: true,
+        fontSize: 12,
+        margin: [5, 0, 0, 0]
+      },
+      footerNote: {
+        fontSize: 8,
+        color: '#666',
+        italics: true
+      }
+    };
 
-    defaultStyle: {
-      fontSize: 9,
-      lineHeight: 1.2
-    },
+    // Create the document definition
+    const docDefinition: PdfDocumentDefinition = {
+      pageSize: 'A4',
+      pageOrientation: 'portrait',
+      pageMargins: [20, 20, 20, 20],
+      info: {
+        title: `Réservation - ${data.client.name}`,
+        author: 'Location Déco',
+        subject: 'Détails de réservation',
+        keywords: 'réservation, location, décoration'
+      },
+      defaultStyle: {
+        fontSize: 8,
+        lineHeight: 1,
+        margin: [0, 1, 0, 1]
+      },
+      content: [
+        // Single copy of the reservation details
+        {
+          stack: [
+            // Header
+            {
+              columns: [
+                {
+                  width: '60%',
+                  stack: [
+                    { text: 'LOCATION DÉCO', style: 'companyName', margin: [0, 0, 0, 0] },
+                    { text: 'Service de location d\'articles de décoration', style: 'companySubtitle', margin: [0, 0, 0, 5], fontSize: 8 }
+                  ]
+                },
+                {
+                  width: '40%',
+                  stack: [
+                    {
+                      text: data.reservationId ?
+                        (data.isEditMode ? `Réservation #${data.reservationId} (Modifiée)` : `Réservation #${data.reservationId}`) :
+                        'Nouvelle Réservation',
+                      style: 'reservationNumber',
+                      alignment: 'right'
+                    },
+                    {
+                      text: `Date d'émission: ${new Date().toLocaleDateString('fr-FR')}`,
+                      style: 'dateEmission',
+                      alignment: 'right',
+                      margin: [0, 2, 0, 0]
+                    }
+                  ]
+                }
+              ],
+              margin: [0, 0, 0, 10]
+            },
 
-    pageSize: 'A4',
-    pageMargins: [40, 40, 40, 60] // tighter margins
-  };
-}
+            // Title
+            { text: 'DÉTAILS DE LA RÉSERVATION', style: 'documentTitle', alignment: 'center', margin: [0, 0, 0, 12] },
 
+            // Client and Event Info
+            {
+              columns: [
+                {
+                  width: '48%',
+                  stack: [
+                    { text: 'INFORMATIONS CLIENT', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+                    { text: `Nom: ${data.client.name}`, margin: [0, 1] },
+                    { text: `Téléphone: ${data.client.phone}`, margin: [0, 1] },
+                    { text: `Adresse: ${data.client.address || 'Non spécifiée'}`, margin: [0, 1] }
+                  ]
+                },
+                { width: '4%', text: '' },
+                {
+                  width: '48%',
+                  stack: [
+                    { text: 'DÉTAILS DE L\'ÉVÉNEMENT', style: 'sectionHeader', margin: [0, 0, 0, 4] },
+                    { text: `Date: ${this.formatDate(data.startDate)}`, margin: [0, 1] },
+                    { text: `Durée: ${data.totalDays} jour(s)`, margin: [0, 1] },
+                    data.remarques ? { text: `Remarques: ${data.remarques}`, style: 'remarks', margin: [0, 3] } : null
+                  ].filter(Boolean)
+                }
+              ],
+              margin: [0, 0, 0, 12]
+            },
 
+            // Articles Table
+            { text: 'ARTICLES RÉSERVÉS', style: 'sectionHeader', margin: [0, 0, 0, 6] },
+            {
+              table: {
+                headerRows: 1,
+                widths: ['*', 'auto', 'auto', 'auto'],
+                body: [
+                  [
+                    { text: 'Article', style: 'tableHeader' },
+                    { text: 'Prix/Jour', style: 'tableHeader', alignment: 'right' },
+                    { text: 'Quantité', style: 'tableHeader', alignment: 'center' },
+                    { text: 'Sous-total', style: 'tableHeader', alignment: 'right' }
+                  ],
+                  // Group items by category
+                  ...this.groupItemsByCategory(data.reservationItems).flatMap(({ categoryName, items }) => [
+                    // Category header row
+                    [
+                      { 
+                        text: categoryName, 
+                        style: 'itemCategory',
+                        colSpan: 4,
+                        margin: [0, 8, 0, 2]
+                      },
+                      {}, {}, {}
+                    ],
+                    // Items in this category
+                    ...items.map(item => [
+                      { text: item.article?.name || 'Article inconnu', style: 'itemName', margin: [10, 0, 0, 0] },
+                      { text: `${item.article?.pricePerDay || 0} DZD`, alignment: 'right', style: 'itemName' },
+                      { text: item.quantity.toString(), alignment: 'center', style: 'itemName' },
+                      { text: `${(item.article?.pricePerDay || 0) * item.quantity} DZD`, alignment: 'right', style: 'itemName' }
+                    ])
+                  ])
+                ]
+              },
+              layout: {
+                hLineWidth: function(i: number, node: any) {
+                  return (i === 0 || i === node.table.body.length) ? 0.5 : 0.3;
+                },
+                vLineWidth: function() { return 0; },
+                hLineColor: function() { return '#e0e0e0'; },
+                paddingTop: function() { return 2; },
+                paddingBottom: function() { return 2; }
+              },
+              margin: [0, 0, 0, 5]
+            },
 
+            // Totals
+            {
+              table: {
+                widths: ['*', 'auto'],
+                body: [
+                  ['Total par jour:', `${totalPrice} DZD`],
+                  [`Total (${data.totalDays} jour(s)) :`, `${grandTotal} DZD`]
+                ]
+              },
+              layout: 'lightHorizontalLines',
+              margin: [0, 8, 0, 15]
+            },
 
- 
+            // Dashed line separator
+            {
+              canvas: [
+                { type: 'line', x1: 0, y1: 5, x2: 595-40, y2: 5, lineWidth: 0.5, lineColor: '#999', dash: { length: 2 } }
+              ],
+              margin: [0, 15, 0, 15]
+            },
+
+            // Category Summary
+            { text: 'RÉCAPITULATIF PAR CATÉGORIE', style: 'sectionHeader', margin: [0, 0, 0, 5] },
+            {
+              table: {
+                headerRows: 1,
+                widths: ['60%', '20%', '20%'],
+                body: [
+                  [
+                    { text: 'CATÉGORIE', style: 'tableHeader' },
+                    { text: 'QTE', style: 'tableHeader', alignment: 'center' },
+                    { text: 'TOTAL', style: 'tableHeader', alignment: 'right' }
+                  ],
+                  ...categorySummary.map((item: any) => [
+                    { text: item.category, style: 'itemName' },
+                    { text: item.quantity, alignment: 'center', style: 'itemName' },
+                    { text: `${item.total} DZD`, alignment: 'right', style: 'itemName' }
+                  ]),
+                  // Add total row
+                  [
+                    { 
+                      text: 'TOTAL GÉNÉRAL', 
+                      style: 'totalGeneral',
+                      colSpan: 2 
+                    },
+                    {},
+                    { 
+                      text: `${grandTotal} DZD`, 
+                      style: 'totalGeneral',
+                      alignment: 'right' 
+                    }
+                  ]
+                ]
+              },
+              layout: {
+                hLineWidth: function(i: number, node: any) {
+                  return (i === 0 || i === node.table.body.length - 2) ? 0.5 : 0;
+                },
+                vLineWidth: function() { return 0; },
+                hLineColor: function() { return '#e0e0e0'; },
+                paddingTop: function() { return 2; },
+                paddingBottom: function() { return 2; },
+                hLineStyle: function() { return { dash: { length: 1, space: 2 } }; }
+              },
+              margin: [0, 0, 0, 5]
+            },
+
+            // Versement section for handwritten amount
+            {
+              margin: [0, 20, 0, 20],
+              columns: [
+                {
+                  width: '40%',
+                  stack: [
+                    { text: 'VERSEMENT:', style: 'sectionHeader', margin: [0, 0, 0, 10] },
+                    // { 
+                    //   // canvas: [
+                    //   //   { type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 1, lineColor: '#000000' }
+                    //   // ],
+                    //   margin: [0, 10, 0, 0]
+                    // }
+                  ]
+                },
+                { width: '20%', text: '' },
+                {
+                  width: '40%',
+                  stack: [
+                    { text: 'DATE:', style: 'sectionHeader', margin: [0, 0, 0, 10] },
+                    // { 
+                    //   // canvas: [
+                    //   //   { type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 1, lineColor: '#000000' }
+                    //   // ],
+                    //   margin: [0, 10, 0, 0]
+                    // }
+                  ]
+                }
+              ]
+            },
+
+            // Edit mode footer
+            data.isEditMode ? {
+              text: `Modifié le: ${new Date().toLocaleString('fr-FR')}`,
+              alignment: 'right',
+              fontSize: 8,
+              italics: true,
+              margin: [0, 5, 0, 0]
+            } : null,
+
+            // Terms at very bottom
+            {
+              text: 'CONDITIONS DE RÉSERVATION',
+              style: 'termsTitle',
+              margin: [0, 20, 0, 3]
+            },
+            {
+              ul: [
+                'La réservation est confirmée après paiement d\'un acompte de 30% du montant total.',
+                'Les articles doivent être retournés dans l\'état où ils ont été livrés.'
+              ],
+              style: 'termsText',
+              margin: [0, 0, 0, 10]
+            }
+          ]
+        }
+      ]
+    };
+
+    // // Add footer and styles to the document definition
+    // docDefinition.footer = (currentPage: number, pageCount: number) => ({
+    //   columns: [
+    //     { 
+    //       text: 'Location Déco - Service de location d\'articles de décoration', 
+    //       alignment: 'center' as const, 
+    //       fontSize: 8 
+    //     },
+    //     { 
+    //       text: `Page ${currentPage} sur ${pageCount}`, 
+    //       alignment: 'right' as const, 
+    //       fontSize: 8 
+    //     }
+    //   ],
+    //   margin: [40, 10]
+    // });
+
+    docDefinition.styles = styles;
+    return docDefinition;
+  }
+
+  // Helper method to group items by category
+  private groupItemsByCategory(items: any[]): Array<{categoryName: string, items: any[]}> {
+    const categoryMap = new Map<string, any[]>();
+    
+    // First, group items by category
+    items.forEach(item => {
+      const categoryName = item.article?.category?.name || 'Autres';
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, []);
+      }
+      categoryMap.get(categoryName)?.push(item);
+    });
+
+    // Sort categories alphabetically
+    const sortedCategories = Array.from(categoryMap.entries())
+      .sort(([catA], [catB]) => catA.localeCompare(catB))
+      .map(([categoryName, items]) => ({
+        categoryName,
+        items: items.sort((a, b) => 
+          (a.article?.name || '').localeCompare(b.article?.name || '')
+        )
+      }));
+
+    return sortedCategories;
+  }
+
+  // Helper method to calculate category summary
+  private calculateCategorySummary(items: any[]): any[] {
+    const categoryMap = new Map();
+    
+    items.forEach(item => {
+      const categoryName = item.article?.category?.name || 'Autres';
+      const total = (item.article?.pricePerDay || 0) * item.quantity;
+      
+      if (categoryMap.has(categoryName)) {
+        const existing = categoryMap.get(categoryName);
+        existing.quantity += item.quantity;
+        existing.total += total;
+      } else {
+        categoryMap.set(categoryName, {
+          category: categoryName,
+          quantity: item.quantity,
+          total: total
+        });
+      }
+    });
+    
+    // Sort categories alphabetically for the summary
+    return Array.from(categoryMap.values())
+      .sort((a, b) => a.category.localeCompare(b.category));
+  }
+
   /**
    * Generate and view PDF
    */
