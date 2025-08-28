@@ -89,4 +89,11 @@ export class CreateClientModalComponent implements OnInit {
       }
     });
   }
+    // Getter for button text
+  get submitButtonText(): string {
+    if (this.isSubmitting) {
+      return   'Enregistrement...';
+    }
+    return  'Enregistrer';
+  }
 }

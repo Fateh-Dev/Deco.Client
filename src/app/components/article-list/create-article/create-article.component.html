@@ -3,21 +3,29 @@
   <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
     <div class="p-1.5 rounded-lg bg-blue-50 text-blue-600">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path *ngIf="!isEditMode" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        <path *ngIf="isEditMode" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        <path
+          *ngIf="!isEditMode"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+        <path
+          *ngIf="isEditMode"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
       </svg>
     </div>
-    <h2 class="text-xl font-bold text-gray-800">
-      {{ isEditMode ? 'Modifier l\'article' : 'Ajouter un nouvel article' }}
-    </h2>
+    <h2 class="text-xl font-bold text-gray-800">{{ isEditMode ? "Modifier l'article" : "Ajouter un nouvel article" }}</h2>
   </div>
 
   <!-- Main Grid Layout -->
   <div class="grid grid-cols-12 gap-4">
-    
     <!-- Left Section: Basic Info (8 cols) -->
     <div class="col-span-12 lg:col-span-8 space-y-4">
-      
       <!-- Row 1: Name + Category -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Name (2/3 width) -->
@@ -25,22 +33,35 @@
           <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
             Nom de l'article <span class="text-red-500">*</span>
           </label>
-          <input type="text" id="name" name="name" [(ngModel)]="newArticle.name" required
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="newArticle.name"
+            required
             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-sm border"
-            placeholder="Ex: Tente 4 personnes Coleman">
+            placeholder="Ex: Tente 4 personnes Coleman"
+          />
         </div>
-        
+
         <!-- Category (1/3 width) -->
         <div class="md:col-span-1">
           <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
           <div class="flex space-x-2">
-            <select id="categoryId" name="categoryId" [(ngModel)]="newArticle.categoryId"
-              class="block w-full px-3 py-2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 bg-white text-sm">
+            <select
+              id="categoryId"
+              name="categoryId"
+              [(ngModel)]="newArticle.categoryId"
+              class="block w-full px-3 py-2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 bg-white text-sm"
+            >
               <option [ngValue]="undefined" class="text-gray-400">Sélectionner</option>
               <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
             </select>
-            <button type="button" (click)="openCategoryModal()" 
-              class="inline-flex items-center justify-center px-2 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 text-sm">
+            <button
+              type="button"
+              (click)="openCategoryModal()"
+              class="inline-flex items-center justify-center px-2 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 text-sm"
+            >
               <i class="fas fa-plus"></i>
             </button>
           </div>
@@ -53,30 +74,36 @@
         <div>
           <label for="pricePerDay" class="block text-sm font-medium text-gray-700 mb-1">Prix/jour</label>
           <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-xs">DZD</span>
-            <input type="number" id="pricePerDay" name="pricePerDay" [(ngModel)]="newArticle.pricePerDay" min="0" step="0.01"
-              class="block w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-              placeholder="0.00">
+            <input
+              type="number"
+              id="pricePerDay"
+              name="pricePerDay"
+              [(ngModel)]="newArticle.pricePerDay"
+              min="0"
+              step="0.01"
+              class="block w-full pl-3 pr-12  py-2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+              placeholder="0.00"
+            /><span class="absolute inset-y-0 right-0 pl-3 flex items-center text-gray-500 text-xs">DZD</span>
           </div>
         </div>
-        
+        <span classe="flex"></span>
         <!-- Quantity -->
         <div>
-          <label for="quantityTotal" class="block text-sm font-medium text-gray-700 mb-1">Quantité <span class="text-red-500">*</span></label>
+          <label for="quantityTotal" class="block text-sm font-medium text-gray-700 mb-1"
+            >Quantité (Stock) <span class="text-red-500">*</span></label
+          >
           <div class="relative">
-            <input type="number" id="quantityTotal" name="quantityTotal" [(ngModel)]="newArticle.quantityTotal" required min="1"
+            <input
+              type="number"
+              id="quantityTotal"
+              name="quantityTotal"
+              [(ngModel)]="newArticle.quantityTotal"
+              required
+              min="1"
               class="block w-full pl-3 pr-12 py-2 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-              placeholder="1">
+              placeholder="1"
+            />
             <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 text-xs">unités</span>
-          </div>
-        </div>
-        
-        <!-- Active Status -->
-        <div class="flex items-center h-full">
-          <div class="flex items-center gap-2 mt-6">
-            <input id="isActive" name="isActive" type="checkbox" [(ngModel)]="newArticle.isActive"
-              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-            <label for="isActive" class="text-sm font-medium text-gray-700">Article actif</label>
           </div>
         </div>
       </div>
@@ -84,70 +111,81 @@
       <!-- Row 3: Description -->
       <div>
         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <textarea id="description" name="description" [(ngModel)]="newArticle.description" rows="3"
+        <textarea
+          id="description"
+          name="description"
+          [(ngModel)]="newArticle.description"
+          rows="3"
           class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 border text-sm resize-none"
-          placeholder="Caractéristiques, état, dimensions..."></textarea>
+          placeholder="Caractéristiques, état, dimensions..."
+        ></textarea>
       </div>
     </div>
 
     <!-- Right Section: Image (4 cols) -->
     <div class="col-span-12 lg:col-span-4">
       <label class="block text-sm font-medium text-gray-700 mb-1">Image de l'article</label>
-      
+
       <!-- Compact Image Container -->
-      <div class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors duration-200 h-fit">
-        
+      <div
+        class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors duration-200 h-fit"
+      >
         <!-- Current Image Display (for edit mode) -->
         <div *ngIf="isEditMode && newArticle.imageUrl && !selectedFile" class="relative group">
           <div class="aspect-square w-full h-48  overflow-hidden rounded-t-lg bg-white">
-            <img [src]="newArticle.imageUrl" 
-                 alt="Image actuelle de l'article"
-                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                 onerror="this.src='https://placehold.co/300x300?text=Image+non+disponible'">
-            
+            <img
+              [src]="newArticle.imageUrl"
+              alt="Image actuelle de l'article"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              onerror="this.src='https://placehold.co/300x300?text=Image+non+disponible'"
+            />
+
             <!-- Remove button -->
-            <button type="button" 
-                    (click)="clearImage()"
-                    class="absolute top-2 right-2 bg-white shadow-md hover:bg-red-50 text-red-600 rounded-full p-1.5 text-xs transition-all duration-200 hover:scale-110">
+            <button
+              type="button"
+              (click)="clearImage()"
+              class="absolute top-2 right-2 bg-white shadow-md hover:bg-red-50 text-red-600 rounded-full p-1.5 text-xs transition-all duration-200 hover:scale-110"
+            >
               <i class="fas fa-times w-3 h-3"></i>
             </button>
           </div>
           <div class="px-3 py-2 bg-gradient-to-r from-green-50 to-blue-50 rounded-b-lg">
             <div class="flex items-center text-xs text-gray-600">
-              <i class="fas fa-check-circle text-green-500 mr-2"></i>
-              Image actuelle
+              <i class="fas fa-check-circle text-green-500 mr-2"></i> Image actuelle
             </div>
           </div>
         </div>
-        
+
         <!-- New Image Preview -->
         <div *ngIf="previewUrl && selectedFile" class="relative group">
           <div class="aspect-square w-full overflow-hidden rounded-t-lg bg-white">
-            <img [src]="previewUrl" 
-                 alt="Aperçu de la nouvelle image"
-                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
-            
+            <img
+              [src]="previewUrl"
+              alt="Aperçu de la nouvelle image"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+
             <!-- Status badge -->
             <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              <i class="fas fa-upload mr-1"></i>
-              Nouveau
+              <i class="fas fa-upload mr-1"></i> Nouveau
             </div>
-            
+
             <!-- Remove button -->
-            <button type="button" 
-                    (click)="clearImage()"
-                    class="absolute top-2 right-2 bg-white shadow-md hover:bg-red-50 text-red-600 rounded-full p-1.5 text-xs transition-all duration-200 hover:scale-110">
+            <button
+              type="button"
+              (click)="clearImage()"
+              class="absolute top-2 right-2 bg-white shadow-md hover:bg-red-50 text-red-600 rounded-full p-1.5 text-xs transition-all duration-200 hover:scale-110"
+            >
               <i class="fas fa-times w-3 h-3"></i>
             </button>
           </div>
           <div class="px-3 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-b-lg">
             <div class="flex items-center text-xs text-gray-600">
-              <i class="fas fa-image text-blue-500 mr-2"></i>
-              Nouvelle image
+              <i class="fas fa-image text-blue-500 mr-2"></i> Nouvelle image
             </div>
           </div>
         </div>
-        
+
         <!-- Empty State -->
         <div *ngIf="!previewUrl && !newArticle.imageUrl" class="p-6 text-center">
           <div class="mb-3">
@@ -156,69 +194,71 @@
             </div>
           </div>
           <p class="text-xs text-gray-500 mb-3">PNG, JPG, GIF</p>
-          
-          <label class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors duration-200">
-            <i class="fas fa-plus mr-1"></i>
-            Ajouter image
-            <input type="file" 
-                   (change)="onFileSelected($event)" 
-                   accept="image/*"
-                   class="sr-only">
+
+          <label
+            class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors duration-200"
+          >
+            <i class="fas fa-plus mr-1"></i> Ajouter image
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="sr-only" />
           </label>
         </div>
-        
+
         <!-- Change Image Button -->
-        <div *ngIf="previewUrl || (isEditMode && newArticle.imageUrl)" class="border-t border-gray-200 bg-gray-50 px-3 py-2 rounded-b-lg">
-          <label class="inline-flex items-center px-2 py-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-medium rounded cursor-pointer transition-colors duration-200">
-            <i class="fas fa-exchange-alt mr-1"></i>
-            Changer
-            <input type="file" 
-                   (change)="onFileSelected($event)" 
-                   accept="image/*"
-                   class="sr-only">
+        <div
+          *ngIf="previewUrl || (isEditMode && newArticle.imageUrl)"
+          class="border-t border-gray-200 bg-gray-50 px-3 py-2 rounded-b-lg"
+        >
+          <label
+            class="inline-flex items-center px-2 py-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-medium rounded cursor-pointer transition-colors duration-200"
+          >
+            <i class="fas fa-exchange-alt mr-1"></i> Changer
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="sr-only" />
           </label>
         </div>
       </div>
-      
+
       <!-- Upload Progress -->
       <div *ngIf="isUploading" class="mt-3 space-y-1">
         <div class="flex items-center justify-between text-xs text-gray-600">
-          <span class="flex items-center">
-            <i class="fas fa-spinner fa-spin mr-1"></i>
-            Upload...
-          </span>
+          <span class="flex items-center"> <i class="fas fa-spinner fa-spin mr-1"></i> Téléchargement... </span>
           <span class="font-medium">{{ uploadProgress }}%</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-1.5">
-          <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300" 
-               [style.width.%]="uploadProgress">
-          </div>
+          <div
+            class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300"
+            [style.width.%]="uploadProgress"
+          ></div>
         </div>
       </div>
-      
+
       <!-- Error Message -->
       <div *ngIf="uploadError" class="mt-3 bg-red-50 border border-red-200 rounded-md p-2">
         <div class="flex items-center text-xs text-red-600">
-          <i class="fas fa-exclamation-triangle mr-1"></i>
-          {{ uploadError }}
+          <i class="fas fa-exclamation-triangle mr-1"></i> {{ uploadError }}
         </div>
       </div>
-      
+
       <!-- Hidden URL input -->
-      <input type="hidden" name="imageUrl" [(ngModel)]="newArticle.imageUrl">
+      <input type="hidden" name="imageUrl" [(ngModel)]="newArticle.imageUrl" />
     </div>
   </div>
 
   <!-- Actions -->
   <div class="flex justify-end gap-3 pt-4 mt-4 border-t border-gray-100">
-    <button type="button" (click)="onCancel()"
-      class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 text-sm">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 text-sm"
+    >
       Annuler
     </button>
-    <button type="submit" [disabled]="!isFormValid() || isUploading"
-      class="inline-flex items-center px-4 py-2 text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-70 text-sm">
-      <span *ngIf="!isUploading">{{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}</span>
-      <span *ngIf="isUploading">Upload...</span>
+    <button
+      type="submit"
+      [disabled]="!isFormValid() || isUploading"
+      class="inline-flex items-center px-4 py-2 text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-70 text-sm"
+    >
+      <span *ngIf="!isUploading">{{ isEditMode ? "Mettre à jour" : "Enregistrer" }}</span>
+      <span *ngIf="isUploading">Téléchargement...</span>
     </button>
   </div>
 </form>
@@ -229,7 +269,7 @@
     <div class="mt-2">
       <!-- Modal Header -->
       <div class="flex justify-between items-center mb-3">
-        <h3 class="text-base font-medium text-gray-900">Add New Category</h3>
+        <h3 class="text-base font-medium text-gray-900">Ajouter une nouvelle catégorie</h3>
         <button (click)="closeCategoryModal()" class="text-gray-400 hover:text-gray-600 transition duration-200">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -240,21 +280,28 @@
       <!-- Modal Content -->
       <div class="space-y-3">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
           <input
             type="text"
             [(ngModel)]="categoryForm.name"
             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter category name"
+            placeholder="Entrez le nom de la catégorie"
           />
         </div>
       </div>
 
       <!-- Modal Error Message -->
-      <div *ngIf="categoryError" class="mt-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{{ categoryError }}</div>
-      
+      <div *ngIf="categoryError" class="mt-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+        {{ categoryError }}
+      </div>
+
       <!-- Modal Success Message -->
-      <div *ngIf="categorySuccessMessage" class="mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded text-sm">{{ categorySuccessMessage }}</div>
+      <div
+        *ngIf="categorySuccessMessage"
+        class="mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded text-sm"
+      >
+        {{ categorySuccessMessage }}
+      </div>
 
       <!-- Modal Footer -->
       <div class="flex justify-end space-x-2 mt-4">
@@ -262,13 +309,13 @@
           (click)="closeCategoryModal()"
           class="px-3 py-1.5 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition duration-200"
         >
-          Cancel
+          Annuler
         </button>
         <button
           (click)="saveCategory()"
           class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200"
         >
-          Create
+          Créer
         </button>
       </div>
     </div>

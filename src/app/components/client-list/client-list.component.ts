@@ -25,6 +25,8 @@ export class ClientListComponent implements OnInit, OnDestroy {
   // Modal states
   showCreateModal: boolean = false;
   showDeleteModal: boolean = false;
+  showSuccessModal: boolean = false;
+  showErrorModal: boolean = false;
   
   // Selected clients for operations
   selectedClient: Client | null = null;
@@ -193,15 +195,29 @@ export class ClientListComponent implements OnInit, OnDestroy {
     // This could open a details modal or navigate to a details page
   }
 
-  // Utility methods
-  private showSuccessMessage(message: string): void {
+  // Success Modal methods
+  showSuccessMessage(message: string): void {
     this.successMessage = message;
-    // Auto-hide success message after 3 seconds
-    setTimeout(() => {
-      this.successMessage = null;
-    }, 3000);
+    this.showSuccessModal = true;
   }
 
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    this.successMessage = null;
+  }
+
+  // Error Modal methods
+  showErrorMessage(message: string): void {
+    this.error = message;
+    this.showErrorModal = true;
+  }
+
+  closeErrorModal(): void {
+    this.showErrorModal = false;
+    this.error = null;
+  }
+
+  // Utility methods
   private clearMessages(): void {
     this.error = null;
     this.successMessage = null;
