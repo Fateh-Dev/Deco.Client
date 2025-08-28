@@ -274,25 +274,12 @@ export class ReservationPdfService {
                     { text: 'Quantité', style: 'tableHeader', alignment: 'center' },
                     { text: 'Sous-total', style: 'tableHeader', alignment: 'right' }
                   ],
-                  // Group items by category
-                  ...this.groupItemsByCategory(data.reservationItems).flatMap(({ categoryName, items }) => [
-                    // Category header row
-                    [
-                      { 
-                        text: categoryName, 
-                        style: 'itemCategory',
-                        colSpan: 4,
-                        margin: [0, 8, 0, 2]
-                      },
-                      {}, {}, {}
-                    ],
-                    // Items in this category
-                    ...items.map(item => [
-                      { text: item.article?.name || 'Article inconnu', style: 'itemName', margin: [10, 0, 0, 0] },
-                      { text: `${item.article?.pricePerDay || 0} DZD`, alignment: 'right', style: 'itemName' },
-                      { text: item.quantity.toString(), alignment: 'center', style: 'itemName' },
-                      { text: `${(item.article?.pricePerDay || 0) * item.quantity} DZD`, alignment: 'right', style: 'itemName' }
-                    ])
+                  // Sort items by category and then by article name
+                  ...this.getItemsSortedByCategory(data.reservationItems).map(item => [
+                    { text: item.article?.name || 'Article inconnu', style: 'itemName' },
+                    { text: `${item.article?.pricePerDay || 0} DZD`, alignment: 'right', style: 'itemName' },
+                    { text: item.quantity.toString(), alignment: 'center', style: 'itemName' },
+                    { text: `${(item.article?.pricePerDay || 0) * item.quantity} DZD`, alignment: 'right', style: 'itemName' }
                   ])
                 ]
               },
@@ -456,30 +443,23 @@ export class ReservationPdfService {
     return docDefinition;
   }
 
-  // Helper method to group items by category
-  private groupItemsByCategory(items: any[]): Array<{categoryName: string, items: any[]}> {
-    const categoryMap = new Map<string, any[]>();
-    
-    // First, group items by category
-    items.forEach(item => {
-      const categoryName = item.article?.category?.name || 'Autres';
-      if (!categoryMap.has(categoryName)) {
-        categoryMap.set(categoryName, []);
-      }
-      categoryMap.get(categoryName)?.push(item);
+  // Helper method to get items sorted by category and then by article name
+  private getItemsSortedByCategory(items: any[]): any[] {
+    // Create a copy of the array to avoid mutating the original
+    return [...items].sort((a, b) => {
+      // Get category names (with fallback to 'Autres' if not specified)
+      const categoryA = a.article?.category?.name || 'Autres';
+      const categoryB = b.article?.category?.name || 'Autres';
+      
+      // First sort by category
+      if (categoryA < categoryB) return -1;
+      if (categoryA > categoryB) return 1;
+      
+      // If same category, sort by article name
+      const nameA = a.article?.name || '';
+      const nameB = b.article?.name || '';
+      return nameA.localeCompare(nameB);
     });
-
-    // Sort categories alphabetically
-    const sortedCategories = Array.from(categoryMap.entries())
-      .sort(([catA], [catB]) => catA.localeCompare(catB))
-      .map(([categoryName, items]) => ({
-        categoryName,
-        items: items.sort((a, b) => 
-          (a.article?.name || '').localeCompare(b.article?.name || '')
-        )
-      }));
-
-    return sortedCategories;
   }
 
   // Helper method to calculate category summary
