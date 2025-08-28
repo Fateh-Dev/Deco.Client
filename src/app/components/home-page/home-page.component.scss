@@ -166,4 +166,232 @@ button:focus,
   .text-gray-600, .text-gray-700 {
     color: #000 !important;
   }
+}/* Add these styles to your home-page.component.scss */
+
+/* Privacy blur effects */
+.blur-sm {
+  filter: blur(4px);
+  user-select: none;
+}
+
+.blur-md {
+  filter: blur(8px);
+  user-select: none;
+}
+
+.blur-lg {
+  filter: blur(12px);
+  user-select: none;
+}
+
+.filter-none {
+  filter: none;
+}
+
+/* Revenue privacy container */
+.revenue-privacy {
+  position: relative;
+  overflow: hidden;
+
+  &.protected {
+    .revenue-value {
+      filter: blur(8px);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    &:hover .revenue-value {
+      filter: blur(4px);
+      transition: filter 0.3s ease;
+    }
+  }
+
+  &.revealed .revenue-value {
+    filter: none;
+    transition: filter 0.5s ease;
+  }
+}
+
+/* Masked text styling */
+.masked-text {
+  font-family: monospace;
+  letter-spacing: 0.2em;
+  color: #9ca3af;
+}
+
+/* Privacy toggle button */
+.privacy-toggle {
+  @apply transition-all duration-200 ease-in-out;
+  @apply p-2 rounded-full;
+  @apply hover:bg-gray-100;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &.active {
+    @apply bg-blue-50 text-blue-600;
+  }
+}
+
+/* Reveal on hover effect */
+.hover-reveal {
+  .revenue-content {
+    filter: blur(6px);
+    transition: filter 0.3s ease;
+  }
+
+  &:hover .revenue-content {
+    filter: none;
+  }
+
+  /* Hover hint */
+  &::after {
+    content: '👁️ Survolez pour révéler';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  &:not(:hover)::after {
+    opacity: 1;
+  }
+}
+
+/* PIN protection styles */
+.pin-protected {
+  .protected-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    backdrop-filter: blur(2px);
+  }
+
+  .shield-icon {
+    animation: pulse 2s infinite;
+  }
+}
+
+/* Security indicator */
+.security-badge {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+  
+  &.locked {
+    @apply bg-red-50 text-red-700 border border-red-200;
+  }
+  
+  &.unlocked {
+    @apply bg-green-50 text-green-700 border border-green-200;
+  }
+  
+  &.temporary {
+    @apply bg-yellow-50 text-yellow-700 border border-yellow-200;
+    animation: blink 1s infinite;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.5; }
+}
+
+/* Reveal animation */
+.reveal-animation {
+  animation: revealValue 0.8s ease-out forwards;
+}
+
+@keyframes revealValue {
+  0% {
+    filter: blur(12px);
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    filter: blur(6px);
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+  100% {
+    filter: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hide animation */
+.hide-animation {
+  animation: hideValue 0.5s ease-in forwards;
+}
+
+@keyframes hideValue {
+  0% {
+    filter: none;
+    opacity: 1;
+  }
+  100% {
+    filter: blur(8px);
+    opacity: 0.6;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .privacy-toggle {
+    @apply p-1;
+  }
+  
+  .hover-reveal::after {
+    content: 'Touchez pour révéler';
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .revenue-privacy *,
+  .reveal-animation,
+  .hide-animation {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .blur-sm, .blur-md, .blur-lg {
+    filter: none;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      #000 2px,
+      #000 4px
+    );
+    color: transparent;
+  }
 }

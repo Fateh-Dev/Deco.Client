@@ -326,5 +326,47 @@ export class HomePageComponent implements OnInit {
     });
 
     return rentedCount;
+  } 
+  isRevenueVisible = false;
+  isRevenueBlurred = true;
+  
+  // ... rest of your existing code ...
+
+  // Method to toggle revenue visibility
+  toggleRevenueVisibility(): void {
+    this.isRevenueVisible = !this.isRevenueVisible;
+    this.isRevenueBlurred = !this.isRevenueBlurred;
+  }
+
+  // Method to show revenue temporarily (on hover)
+  showRevenueTemporary(): void {
+    if (!this.isRevenueVisible) {
+      this.isRevenueBlurred = false;
+    }
+  }
+
+  // Method to hide revenue again (on mouse leave)
+  hideRevenueTemporary(): void {
+    if (!this.isRevenueVisible) {
+      this.isRevenueBlurred = true;
+    }
+  }
+
+  // Get masked revenue for display
+  getMaskedRevenue(): string {
+    if (this.isRevenueVisible || !this.isRevenueBlurred) {
+      return this.getMonthlyRevenue().toString();
+    }
+    return '●●●●●';
+  }
+
+  // Get revenue visibility icon
+  getRevenueVisibilityIcon(): string {
+    return this.isRevenueVisible ? 'fas fa-eye-slash' : 'fas fa-eye';
+  }
+
+  // Get revenue visibility tooltip
+  getRevenueVisibilityTooltip(): string {
+    return this.isRevenueVisible ? 'Masquer les revenus' : 'Afficher les revenus';
   }
 }

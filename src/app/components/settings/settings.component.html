@@ -1,159 +1,249 @@
-<div class="container mx-auto px-3 py-4 max-w-5xl">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="text-xl font-bold text-gray-800">Category Management</h1>
-    <button
-      (click)="openCreateModal()"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-sm rounded flex items-center space-x-1 transition duration-200"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-      <span>Add Category</span>
-    </button>
+<div class="flex h-screen bg-gray-100">
+  <!-- Left Sidebar - Lookup Tables List -->
+  <div class="w-64 bg-white shadow-lg border-r border-gray-200">
+    <div class="p-4 border-b border-gray-200">
+      <h1 class="text-lg font-bold text-gray-800">Lookup Tables</h1>
+      <p class="text-sm text-gray-600">Manage your reference data</p>
+    </div>
+    
+    <nav class="p-2">
+      <ul class="space-y-1">
+        <li *ngFor="let table of lookupTables">
+          <button
+            (click)="selectLookupTable(table)"
+            [class]="'w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-3 ' + 
+                    (selectedLookupTable?.id === table.id ? 
+                      'bg-blue-50 text-blue-700 border border-blue-200' : 
+                      'text-gray-700 hover:bg-gray-50 hover:text-gray-900')"
+          >
+            <i [class]="table.icon + ' text-sm'"></i>
+            <div class="flex-1">
+              <div class="text-sm font-medium">{{ table.name }}</div>
+              <div class="text-xs text-gray-500">{{ table.description }}</div>
+            </div>
+            <i class="fas fa-chevron-right text-xs opacity-50" 
+               *ngIf="selectedLookupTable?.id === table.id"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="flex justify-center items-center py-8">
-    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-  </div>
-
-  <!-- Error Message -->
-  <div
-    *ngIf="error"
-    class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3 text-sm flex justify-between items-center"
-  >
-    <span>{{ error }}</span>
-    <button (click)="error = ''" class="text-red-700 hover:text-red-900">
-      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Success Message -->
-  <div
-    *ngIf="successMessage"
-    class="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded mb-3 text-sm flex justify-between items-center"
-  >
-    <span>{{ successMessage }}</span>
-    <button (click)="successMessage = ''" class="text-green-700 hover:text-green-900">
-      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Categories List -->
-  <div class="bg-white rounded-md shadow overflow-hidden">
-    <div *ngIf="!loading && categories.length === 0" class="text-center py-8 text-gray-500">
-      <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1"
-          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-        ></path>
-      </svg>
-      <p class="text-sm">No categories found</p>
-      <p class="text-xs text-gray-400">Click "Add Category" to create your first category</p>
+  <!-- Right Content Area -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800" *ngIf="selectedLookupTable">
+            {{ getCurrentTableDisplayName() }}
+          </h2>
+          <p class="text-sm text-gray-600" *ngIf="selectedLookupTable">
+            {{ getCurrentTableDescription() }}
+          </p>
+        </div>
+        <button
+          *ngIf="selectedLookupTable && isCategoriesSelected()"
+          (click)="openCreateModal()"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg flex items-center space-x-2 transition duration-200"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>{{ getAddButtonText() }}</span>
+        </button>
+      </div>
     </div>
 
-    <div *ngIf="!loading && categories.length > 0" class="overflow-x-auto">
-      <table class="w-full border-collapse text-xs">
-        <thead>
-          <tr>
-            <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
-              ID
-            </th>
-            <th class="px-3 py-2 text-left bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
-              Nom
-            </th>
-            <th class="px-3 py-2 text-center bg-gray-50 font-semibold text-gray-700 uppercase tracking-wide border-b text-xs">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let category of categories; trackBy: trackByFn" class="hover:bg-gray-50">
-            <td class="px-3 py-2 border-b text-xs font-medium text-gray-900">{{ category.id }}</td>
-            <td class="px-3 py-2 border-b text-xs text-gray-900 font-medium">{{ category.name }}</td>
+    <!-- Content Area -->
+    <div class="flex-1 overflow-auto p-6">
+      <!-- No Table Selected State -->
+      <div *ngIf="!selectedLookupTable" class="flex items-center justify-center h-full">
+        <div class="text-center">
+          <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Select a Lookup Table</h3>
+          <p class="text-gray-600">Choose a table from the sidebar to view and manage its data.</p>
+        </div>
+      </div>
 
-            <td class="px-3 py-2 border-b text-center">
-              <div class="flex justify-center space-x-1">
-                <!-- <button
-                  (click)="viewCategory(category)"
-                  class="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:-translate-y-0.5"
-                  title="voir"
-                >
-                  <i class="fas fa-eye text-xs"></i>
-                </button> -->
-                <button
-                  (click)="editCategory(category)"
-                  class="inline-flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded hover:bg-green-600 transition-all duration-200 hover:-translate-y-0.5"
-                  title="Modifier"
-                >
-                  <i class="fas fa-edit text-xs"></i>
-                </button>
-                <button
-                  (click)="deleteCategory(category)"
-                  class="inline-flex items-center justify-center w-6 h-6 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:-translate-y-0.5"
-                  title="Supprimer"
-                >
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Messages -->
+      <div class="space-y-3 mb-4" *ngIf="selectedLookupTable">
+        <!-- Error Message -->
+        <div
+          *ngIf="error"
+          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex justify-between items-center"
+        >
+          <span>{{ error }}</span>
+          <button (click)="error = ''" class="text-red-700 hover:text-red-900">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Success Message -->
+        <div
+          *ngIf="successMessage"
+          class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex justify-between items-center"
+        >
+          <span>{{ successMessage }}</span>
+          <button (click)="successMessage = ''" class="text-green-700 hover:text-green-900">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Content -->
+      <div *ngIf="selectedLookupTable" class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+
+        <!-- Categories Data (when categories is selected) -->
+        <div *ngIf="isCategoriesSelected() && !loading">
+          <!-- Empty State -->
+          <div *ngIf="categories.length === 0" class="text-center py-12">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              ></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
+            <p class="text-gray-600 mb-4">Get started by creating your first category</p>
+            <button
+              (click)="openCreateModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg transition duration-200"
+            >
+              Create Category
+            </button>
+          </div>
+
+          <!-- Categories Table -->
+          <div *ngIf="categories.length > 0" class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                    ID
+                  </th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                    Name
+                  </th>
+                  <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let category of categories; trackBy: trackByFn" class="hover:bg-gray-50 transition-colors">
+                  <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ category.id }}
+                  </td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {{ category.name }}
+                  </td>
+                  <td class="px-3 py-2 whitespace-nowrap text-center">
+                    <div class="flex justify-center space-x-1">
+                      <button
+                        (click)="viewCategory(category)"
+                        class="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200"
+                        title="View"
+                      >
+                        <i class="fas fa-eye text-xs"></i>
+                      </button>
+                      <button
+                        (click)="editCategory(category)"
+                        class="inline-flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded hover:bg-green-600 transition-all duration-200"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit text-xs"></i>
+                      </button>
+                      <button
+                        (click)="deleteCategory(category)"
+                        class="inline-flex items-center justify-center w-6 h-6 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200"
+                        title="Delete"
+                      >
+                        <i class="fas fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Placeholder for Other Lookup Tables -->
+        <div *ngIf="!isCategoriesSelected() && !loading" class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <i [class]="selectedLookupTable?.icon + ' text-2xl text-gray-400'"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">{{ getCurrentTableDisplayName() }}</h3>
+          <p class="text-gray-600 mb-4">This lookup table is not yet implemented</p>
+          <div class="text-sm text-gray-500">
+            Coming soon: Management interface for {{ getCurrentTableDisplayName().toLowerCase() }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Modal -->
-  <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-4 border w-80 shadow-lg rounded-md bg-white">
-      <div class="mt-2">
+  <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div class="p-6">
         <!-- Modal Header -->
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-base font-medium text-gray-900">{{ getModalTitle() }}</h3>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">{{ getModalTitle() }}</h3>
           <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 transition duration-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
         <!-- Modal Content -->
-        <div class="space-y-3">
+        <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
             <input
               type="text"
               [(ngModel)]="categoryForm.name"
               [readonly]="isViewMode"
-              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              [class.bg-gray-100]="isViewMode"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              [class.bg-gray-50]="isViewMode"
+              [class.cursor-not-allowed]="isViewMode"
               placeholder="Enter category name"
             />
           </div>
         </div>
 
         <!-- Modal Error Message -->
-        <div *ngIf="error" class="mt-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{{ error }}</div>
+        <div *ngIf="error" class="mt-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+          {{ error }}
+        </div>
 
         <!-- Modal Footer -->
-        <div class="flex justify-end space-x-2 mt-4">
+        <div class="flex justify-end space-x-3 mt-6">
           <button
             (click)="closeModal()"
-            class="px-3 py-1.5 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition duration-200"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200"
           >
             {{ isViewMode ? "Close" : "Cancel" }}
           </button>
           <button
             *ngIf="!isViewMode"
             (click)="saveCategory()"
-            class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition duration-200"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
           >
             {{ isEditMode ? "Update" : "Create" }}
           </button>

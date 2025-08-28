@@ -4,14 +4,56 @@ import { Category } from '../../models/category';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+interface LookupTable {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+}
+
 @Component({
   selector: 'app-settings', 
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'] // Fixed typo: 'styleUrl' -> 'styleUrls'
+  styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
+  // Lookup tables configuration
+  lookupTables: LookupTable[] = [
+    {
+      id: 'categories',
+      name: 'Categories',
+      icon: 'fas fa-tags',
+      description: 'Manage product categories'
+    },
+    // {
+    //   id: 'statuses',
+    //   name: 'Statuses',
+    //   icon: 'fas fa-flag',
+    //   description: 'Manage status types'
+    // },
+    // {
+    //   id: 'priorities',
+    //   name: 'Priorities',
+    //   icon: 'fas fa-exclamation-triangle',
+    //   description: 'Manage priority levels'
+    // },
+    // {
+    //   id: 'departments',
+    //   name: 'Departments',
+    //   icon: 'fas fa-building',
+    //   description: 'Manage departments'
+    // },
+    // {
+    //   id: 'roles',
+    //   name: 'Roles',
+    //   icon: 'fas fa-users',
+    //   description: 'Manage user roles'
+    // }
+  ];
+
+  selectedLookupTable: LookupTable | null = null;
   categories: Category[] = [];
   selectedCategory: Category | null = null;
   isModalOpen = false;
@@ -29,7 +71,29 @@ export class SettingsComponent implements OnInit {
   constructor(private categoryService: CategoryService) { }
 
   ngOnInit(): void {
-    this.loadCategories();
+    // Select first lookup table by default
+    if (this.lookupTables.length > 0) {
+      this.selectLookupTable(this.lookupTables[0]);
+    }
+  }
+
+  selectLookupTable(lookupTable: LookupTable): void {
+    this.selectedLookupTable = lookupTable;
+    this.closeModal(); // Close any open modals
+    this.error = '';
+    this.successMessage = '';
+    
+    // Load data based on selected lookup table
+    switch (lookupTable.id) {
+      case 'categories':
+        this.loadCategories();
+        break;
+      default:
+        // For now, only categories are implemented
+        // You can add other lookup table loading logic here
+        this.categories = [];
+        break;
+    }
   }
 
   loadCategories(): void {
@@ -50,6 +114,8 @@ export class SettingsComponent implements OnInit {
   }
 
   openCreateModal(): void {
+    if (!this.selectedLookupTable) return;
+    
     this.isModalOpen = true;
     this.isEditMode = false;
     this.isViewMode = false;
@@ -109,7 +175,7 @@ export class SettingsComponent implements OnInit {
 
   createCategory(): void {
     const newCategory: Category = {
-      id: 0, // Will be set by backend
+      id: 0,
       name: this.categoryForm.name.trim() 
     };
 
@@ -178,8 +244,31 @@ export class SettingsComponent implements OnInit {
   }
 
   getModalTitle(): string {
-    if (this.isViewMode) return 'View Category';
-    if (this.isEditMode) return 'Edit Category';
-    return 'Create New Category';
+    if (!this.selectedLookupTable) return '';
+    
+    const tableName = this.selectedLookupTable.name.slice(0, -1); // Remove 's' from plural
+    if (this.isViewMode) return `View ${tableName}`;
+    if (this.isEditMode) return `Edit ${tableName}`;
+    return `Create New ${tableName}`;
+  }
+
+  getCurrentTableDisplayName(): string {
+    return this.selectedLookupTable?.name || '';
+  }
+
+  getCurrentTableDescription(): string {
+    return this.selectedLookupTable?.description || '';
+  }
+
+  // Helper method to check if current table is categories
+  isCategoriesSelected(): boolean {
+    return this.selectedLookupTable?.id === 'categories';
+  }
+
+  // Helper method to get button text based on selected table
+  getAddButtonText(): string {
+    if (!this.selectedLookupTable) return 'Add Item';
+    const singular = this.selectedLookupTable.name.slice(0, -1);
+    return `Add ${singular}`;
   }
 }
