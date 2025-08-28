@@ -185,7 +185,7 @@
         <!-- Placeholder for Other Lookup Tables -->
         <div *ngIf="!isCategoriesSelected() && !loading" class="text-center py-12">
           <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-            <i [class]="selectedLookupTable?.icon + ' text-2xl text-gray-400'"></i>
+            <i [class]="(selectedLookupTable?.icon || '') + ' text-2xl text-gray-400'"></i>
           </div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">{{ getCurrentTableDisplayName() }}</h3>
           <p class="text-gray-600 mb-4">Cette table de référence n'est pas encore implémentée</p>
