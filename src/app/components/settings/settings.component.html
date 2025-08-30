@@ -182,73 +182,179 @@
           </div>
         </div>
 
+        <!-- Security Settings -->
+        <div *ngIf="isSecuritySelected() && !loading" class="p-6">
+          <div class="max-w-md mx-auto">
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-gray-900">Changer le Mot de Passe</h3>
+              <p class="text-sm text-gray-500 mt-1">Mettez à jour le mot de passe de votre compte</p>
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="passwordSuccess" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+              <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                {{ passwordSuccess }}
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="passwordError" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+              <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                {{ passwordError }}
+              </div>
+            </div>
+
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="space-y-4">
+              <!-- Current Password -->
+              <div>
+                <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">
+                  Mot de passe actuel
+                </label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  formControlName="currentPassword"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  [class.border-red-300]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched"
+                  placeholder="Entrez votre mot de passe actuel"
+                >
+                <div *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.errors?.['required']" 
+                     class="text-red-500 text-xs mt-1">
+                  Le mot de passe actuel est requis
+                </div>
+              </div>
+
+              <!-- New Password -->
+              <div>
+                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">
+                  Nouveau mot de passe
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  formControlName="newPassword"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  [class.border-red-300]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+                  placeholder="Entrez votre nouveau mot de passe"
+                >
+                <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors?.['required']" 
+                     class="text-red-500 text-xs mt-1">
+                  Le nouveau mot de passe est requis
+                </div>
+                <div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors?.['minlength']" 
+                     class="text-red-500 text-xs mt-1">
+                  Le mot de passe doit contenir au moins 6 caractères
+                </div>
+              </div>
+
+              <!-- Confirm New Password -->
+              <div>
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
+                  Confirmer le nouveau mot de passe
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  formControlName="confirmPassword"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  [class.border-red-300]="(passwordForm.hasError('mismatch') || (passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched))"
+                  placeholder="Confirmez votre nouveau mot de passe"
+                >
+                <div *ngIf="passwordForm.get('confirmPassword')?.touched && passwordForm.get('confirmPassword')?.errors?.['required']" 
+                     class="text-red-500 text-xs mt-1">
+                  Veuillez confirmer votre nouveau mot de passe
+                </div>
+                <div *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched" 
+                     class="text-red-500 text-xs mt-1">
+                  Les mots de passe ne correspondent pas
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  [disabled]="passwordForm.invalid || passwordLoading"
+                  class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                >
+                  <div *ngIf="passwordLoading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {{ passwordLoading ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <!-- Placeholder for Other Lookup Tables -->
-        <div *ngIf="!isCategoriesSelected() && !loading" class="text-center py-12">
+        <div *ngIf="!isCategoriesSelected() && !isSecuritySelected() && !loading" class="text-center py-12">
           <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <i [class]="(selectedLookupTable?.icon || '') + ' text-2xl text-gray-400'"></i>
           </div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">{{ getCurrentTableDisplayName() }}</h3>
-          <p class="text-gray-600 mb-4">Cette table de référence n'est pas encore implémentée</p>
+          <p class="text-gray-600 mb-4">This reference table is not yet implemented</p>
           <div class="text-sm text-gray-500">
-            Bientôt disponible : Interface de gestion pour {{ getCurrentTableDisplayName().toLowerCase() }}
+            Coming soon: Management interface for {{ getCurrentTableDisplayName().toLowerCase() }}
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full">
-      <div class="p-6">
-        <!-- Modal Header -->
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold text-gray-900">{{ getModalTitle() }}</h3>
-          <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 transition duration-200">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
+<!-- Category Modal -->
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <!-- Modal Header -->
+    <div class="mb-4">
+      <h3 class="text-lg font-medium text-gray-900">{{ getModalTitle() }}</h3>
+      <button 
+        (click)="closeModal()" 
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
 
-        <!-- Modal Content -->
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-            <input
-              type="text"
-              [(ngModel)]="categoryForm.name"
-              [readonly]="isViewMode"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              [class.bg-gray-50]="isViewMode"
-              [class.cursor-not-allowed]="isViewMode"
-              placeholder="Entrer le nom de la catégorie"
-            />
-          </div>
-        </div>
+    <!-- Modal Content -->
+    <div class="mb-4">
+      <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-2">
+        Nom de la catégorie
+      </label>
+      <input
+        id="categoryName"
+        type="text"
+        [(ngModel)]="categoryForm.name"
+        [readonly]="isViewMode"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        [class.bg-gray-50]="isViewMode"
+        placeholder="Entrez le nom de la catégorie"
+      >
+    </div>
 
-        <!-- Modal Error Message -->
-        <div *ngIf="error" class="mt-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
-          {{ error }}
-        </div>
+    <!-- Modal Error Message -->
+    <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+      {{ error }}
+    </div>
 
-        <!-- Modal Footer -->
-        <div class="flex justify-end space-x-3 mt-6">
-          <button
-            (click)="closeModal()"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200"
-          >
-            {{ isViewMode ? "Fermer" : "Annuler" }}
-          </button>
-          <button
-            *ngIf="!isViewMode"
-            (click)="saveCategory()"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
-          >
-            {{ isEditMode ? "Mettre à jour" : "Créer" }}
-          </button>
-        </div>
-      </div>
+    <!-- Modal Footer -->
+    <div class="flex justify-end space-x-3">
+      <button
+        (click)="closeModal()"
+        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200"
+      >
+        {{ isViewMode ? "Fermer" : "Annuler" }}
+      </button>
+      <button
+        *ngIf="!isViewMode"
+        (click)="saveCategory()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+      >
+        {{ isEditMode ? "Mettre à jour" : "Créer" }}
+      </button>
     </div>
   </div>
 </div>
