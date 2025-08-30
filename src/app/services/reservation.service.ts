@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Reservation } from "../models/reservation";
 import { ArticleAvailability } from "../models/article-availability";
+import { ConfigService } from "../core/services/config.service";
 
 export interface CreateReservationRequest {
   clientId: number;
@@ -18,9 +19,14 @@ export interface CreateReservationRequest {
   providedIn: "root"
 })
 export class ReservationService {
-  private apiUrl = "http://localhost:5000/api/reservations";
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private get apiUrl(): string {
+    return `${this.configService.apiUrl}/reservations`;
+  }
 
   getReservations(): Observable<Reservation[]> {
     return this.http.get<Reservation[]>(this.apiUrl);

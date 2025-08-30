@@ -2,14 +2,20 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Location } from '../models/location';
+import { ConfigService } from '../core/services/config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocationService {
-  private apiUrl = 'http://localhost:5000/api/locations';
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {}
 
-  constructor(private http: HttpClient) { }
+  private get apiUrl(): string {
+    return `${this.configService.apiUrl}/locations`;
+  }
 
   getLocations(): Observable<Location[]> {
     return this.http.get<Location[]>(this.apiUrl);

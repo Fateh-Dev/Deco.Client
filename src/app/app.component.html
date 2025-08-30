@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside *ngIf="auth.isLoggedIn()"
+<aside *ngIf="auth.isLoggedIn() && !isLocked"
   [class]="'fixed left-0 top-0 z-40 h-screen bg-slate-900 text-slate-300 border-r border-slate-800 shadow-lg transition-all duration-300 ' + (isExpanded ? 'w-64' : 'w-16')"
 >
   <div class="flex flex-col h-full">
@@ -154,9 +154,9 @@
 <!-- Main Content -->
 <main 
   class="min-h-screen bg-slate-100 transition-all duration-300"
-  [class.ml-64]="auth.isLoggedIn() && isExpanded"
-  [class.ml-16]="auth.isLoggedIn() && !isExpanded"
-  [class.w-full]="!auth.isLoggedIn()"
+  [class.ml-64]="auth.isLoggedIn() && isExpanded && !isLocked"
+  [class.ml-16]="auth.isLoggedIn() && !isExpanded && !isLocked"
+  [class.w-full]="!auth.isLoggedIn() || isLocked"
 >
   <div class="w-full">
     <router-outlet></router-outlet>

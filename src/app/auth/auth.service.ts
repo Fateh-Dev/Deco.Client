@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable, throwError } from "rxjs";
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
+import { ConfigService } from '../core/services/config.service';
 
 function parseJwt(token: string): any {
   try {
@@ -13,12 +14,43 @@ function parseJwt(token: string): any {
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
-  private apiUrl = "http://localhost:5000/api/auth";
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private get apiUrl(): string {
+    return `${this.configService.apiUrl}/auth`;
+  }
 
-  login(username: string, password: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { username, password });
+  private currentUser: any = null;
+
+  login(username: string, password: string): Observable<{ token: string, username: string }> {
+    return this.http.post<{ token: string, username: string }>(`${this.apiUrl}/login`, { username, password })
+      .pipe(
+        tap(response => {
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+            this.currentUser = { name: response.username };
+          }
+        })
+      );
+  }
+
+  getCurrentUser(): any {
+    if (!this.currentUser && this.isLoggedIn()) {
+      // If we don't have the user but are logged in, try to get it from the token
+      const token = this.getToken();
+      if (token) {
+        try {
+          const payload = parseJwt(token);
+          this.currentUser = { name: payload.name || 'admin' };
+        } catch (e) {
+          console.error('Error parsing token:', e);
+        }
+      }
+    }
+    return this.currentUser;
   }
 
   register(name: string, email: string, phone: string, password: string): Observable<any> {
