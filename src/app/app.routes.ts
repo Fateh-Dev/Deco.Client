@@ -10,6 +10,7 @@ import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
 import { LockScreenComponent } from './lock-screen/lock-screen.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { GalleryComponent } from './gallery/gallery.component';
 
 export const routes: Routes = [
   // Public routes
@@ -37,6 +38,7 @@ export const routes: Routes = [
       { path: 'reservations/edit/:id', component: CreateReservationComponent },
       { path: 'clients', component: ClientListComponent },
       { path: 'calendar', component: CalendarComponent },
+      { path: 'gallery', component: GalleryComponent },
       { path: 'administration', component: SettingsComponent },
     ]
   },

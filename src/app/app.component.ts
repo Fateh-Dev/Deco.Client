@@ -53,6 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
     { label: 'Articles', route: '/articles' },
     { label: 'Réservations', route: '/reservations' },
     { label: 'Clients', route: '/clients' },
+    { label: 'Galerie', route: '/gallery' },
     { label: 'Administration', route: '/administration' }
   ];
 

@@ -9,7 +9,7 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class AutoLockService implements OnDestroy {
-  private readonly LOCK_TIMEOUT = 2 * 5 * 1000; // 2 minutes in milliseconds
+  private readonly LOCK_TIMEOUT = 10 * 60 * 1000; // 2 minutes in milliseconds
   private timerSubscription: Subscription | null = null;
   private isLockedSubject = new BehaviorSubject<boolean>(false);
   isLocked$ = this.isLockedSubject.asObservable();
