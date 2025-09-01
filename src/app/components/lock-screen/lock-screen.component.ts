@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AutoLockService } from '../core/services/auto-lock.service';
-import { AuthService } from '../auth/auth.service';
+import { AutoLockService } from '../../core/services/auto-lock.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-lock-screen',

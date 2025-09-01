@@ -13,6 +13,16 @@ export interface Album {
   imageCount: number;
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
 export interface Image {
   id: number;
   albumId: number;
@@ -69,14 +79,30 @@ export class GalleryService {
     );
   }
 
-  createAlbum(album: { title: string; description?: string }): Observable<Album> {
+  createAlbum(album: { title: string; description?: string; coverImageUrl?: string }): Observable<Album> {
     return this.http.post<Album>(this.apiUrl, album, { 
       headers: this.getAuthHeaders() 
-    });
+    }).pipe(
+      map(createdAlbum => ({
+        ...createdAlbum,
+        createdAt: new Date(createdAlbum.createdAt)
+      }))
+    );
   }
 
-  updateAlbum(id: number, album: { title?: string; description?: string }): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, album, { 
+  updateAlbum(
+    id: number, 
+    album: { title?: string; description?: string; coverImageUrl?: string },
+    coverImageFile?: File
+  ): Observable<Album> {
+    const formData = new FormData();
+    
+    // Add album properties to form data if they exist
+    if (album.title) formData.append('title', album.title);
+    if (album.description !== undefined) formData.append('description', album.description || '');
+    if (coverImageFile) formData.append('coverImage', coverImageFile);
+
+    return this.http.put<Album>(`${this.apiUrl}/${id}`, formData, { 
       headers: this.getAuthHeaders() 
     });
   }
@@ -88,26 +114,42 @@ export class GalleryService {
   }
 
   // Image methods
-  getAlbumImages(albumId: number): Observable<Image[]> {
-    return this.http.get<Image[]>(`${this.apiUrl}/${albumId}/images`, { 
-      headers: this.getAuthHeaders() 
+  getAlbumImages(albumId: number, page: number = 1, pageSize: number = 20): Observable<PaginatedResponse<Image>> {
+    const params = {
+      pageNumber: page.toString(),
+      pageSize: pageSize.toString()
+    };
+    
+    return this.http.get<PaginatedResponse<Image>>(`${this.apiUrl}/${albumId}/images`, { 
+      headers: this.getAuthHeaders(),
+      params
     }).pipe(
-      map(images => images.map(image => ({
-        ...image,
-        uploadedAt: new Date(image.uploadedAt)
-      })))
+      map(response => ({
+        ...response,
+        items: response.items.map(image => ({
+          ...image,
+          uploadedAt: new Date(image.uploadedAt)
+        }))
+      }))
     );
   }
 
   uploadImage(albumId: number, file: File, title?: string, description?: string): Observable<{progress?: number, image?: Image}> {
     const formData = new FormData();
-    formData.append('file', file);
+    
+    // Create a new File object to ensure proper content type for .jfif files
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const fileType = fileExt === 'jfif' ? 'image/jpeg' : file.type;
+    const blob = file.slice(0, file.size, fileType);
+    const renamedFile = new File([blob], file.name, { type: fileType });
+    
+    formData.append('file', renamedFile);
     if (title) formData.append('title', title);
     if (description) formData.append('description', description);
 
     const req = new HttpRequest(
       'POST',
-      `${this.apiUrl}/${albumId}/uploadimage`,
+      `${this.apiUrl}/${albumId}/images`,
       formData,
       {
         reportProgress: true,
@@ -139,6 +181,8 @@ export class GalleryService {
   }
 
   deleteImage(imageId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/images/${imageId}`);
+    return this.http.delete<void>(`${this.apiUrl}/images/${imageId}`, {
+      headers: this.getAuthHeaders() // Fixed: Added missing auth headers
+    });
   }
 }

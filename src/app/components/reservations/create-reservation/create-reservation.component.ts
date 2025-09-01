@@ -86,32 +86,32 @@ export class CreateReservationComponent implements OnInit {
 
   // Drawer state
   isDrawerOpen = false;
-  
+
   // Client modal state
   showCreateClientModal = false;
 
   // Constructor moved above
-  
+
   // Méthode pour ouvrir le modal de création de client
   openCreateClientModal(): void {
     this.showCreateClientModal = true;
   }
-  
+
   // Méthode pour fermer le modal de création de client
   closeCreateClientModal(): void {
     this.showCreateClientModal = false;
   }
-  
+
   // Méthode appelée lorsqu'un client est créé via le modal
   onClientCreated(newClient: Client): void {
     // Ajouter le nouveau client à la liste des clients
     this.clients = [newClient, ...this.clients];
-    
+
     // Sélectionner automatiquement le client nouvellement créé
     if (newClient.id !== undefined) {
       this.selectedClientId = newClient.id;
     }
-    
+
     // Afficher un message de succès
     this.toastr.success('Client créé avec succès!', 'Succès');
   }
@@ -121,7 +121,7 @@ export class CreateReservationComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       const dateParam = params.get('date');
       const reservationId = params.get('id');
-      
+
       if (reservationId) {
         // If we have a reservation ID, we're in edit mode
         this.loadReservationForEdit(+reservationId);
@@ -130,18 +130,18 @@ export class CreateReservationComponent implements OnInit {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (dateRegex.test(dateParam)) {
           const paramDate = new Date(dateParam);
-          
+
           if (!isNaN(paramDate.getTime())) {
             this.startDateString = dateParam;
             this.startDate = paramDate;
-            
+
             // Set end date to same as start date (1 day rental by default)
             this.endDateString = dateParam;
             this.endDate = paramDate;
-            
+
             console.log('Start date set to:', this.startDateString);
             console.log('End date set to:', this.endDateString);
-            
+
             this.onDateChange();
           } else {
             console.warn('Invalid date parameter:', dateParam);
@@ -161,7 +161,7 @@ export class CreateReservationComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const dateParam = params['date'];
       const reservationId = params['id'];
-      
+
       if (reservationId && !this.isEditMode) {
         // If we have a reservation ID in query params and not already in edit mode
         this.loadReservationForEdit(+reservationId);
@@ -170,17 +170,17 @@ export class CreateReservationComponent implements OnInit {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (dateRegex.test(dateParam)) {
           const paramDate = new Date(dateParam);
-          
+
           if (!isNaN(paramDate.getTime())) {
             this.startDateString = dateParam;
             this.startDate = paramDate;
-            
+
             // Set end date to same as start date (1 day rental by default)
             this.endDateString = dateParam;
             this.endDate = paramDate;
-            
+
             console.log('Start date set from query param to:', this.startDateString);
-            
+
             this.onDateChange();
           }
         }
@@ -190,25 +190,25 @@ export class CreateReservationComponent implements OnInit {
     // Initialize your other data (clients, articles, categories, etc.)
     this.loadData();
   }
-  
+
   loadReservationForEdit(reservationId: number): void {
     this.isEditMode = true;
     this.editReservationId = reservationId;
-    
+
     this.reservationService.getReservation(reservationId).subscribe({
       next: (reservation) => {
         // Set client
         this.selectedClientId = reservation.clientId;
-        
+
         // Set dates
         this.startDate = new Date(reservation.startDate);
         this.endDate = new Date(reservation.endDate);
         this.startDateString = this.formatDate(this.startDate);
         this.endDateString = this.formatDate(this.endDate);
-        
+
         // Set remarks if available
         this.remarques = reservation.remarques || '';
-        
+
         // Set reservation items
         if (reservation.reservationItems && reservation.reservationItems.length > 0) {
           this.reservationItems = reservation.reservationItems.map(item => ({
@@ -217,10 +217,10 @@ export class CreateReservationComponent implements OnInit {
             article: item.article
           }));
         }
-        
+
         // Open the drawer to show the items
         this.isDrawerOpen = true;
-        
+
         // Update the page title to indicate edit mode
         this.toastr.info('Mode édition activé');
       },
@@ -234,12 +234,12 @@ export class CreateReservationComponent implements OnInit {
 
   private setDefaultDates(): void {
     const today = new Date();
-    
+
     this.startDate = today;
     this.endDate = today; // Default to same day (1 day rental)
     this.startDateString = this.formatDate(today);
     this.endDateString = this.formatDate(today);
-    
+
     console.log('Default dates set - Start:', this.startDateString, 'End:', this.endDateString);
   }
 
@@ -253,21 +253,21 @@ export class CreateReservationComponent implements OnInit {
 
   calculateDays(): number {
     if (!this.startDateString || !this.endDateString) return 1;
-    
+
     const start = this.parseDate(this.startDateString);
     const end = this.parseDate(this.endDateString);
-    
+
     // For rental duration calculation:
     // Same date (start = end) = 1 day rental
     // Different dates = (end - start) + 1 days
     if (start.getTime() === end.getTime()) {
       return 1; // Same day rental = 1 day
     }
-    
+
     // Calculate the difference in days
     const diffTime = end.getTime() - start.getTime();
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    
+
     // Add 1 to include both start and end dates in the rental period
     return Math.max(1, Math.floor(diffDays) + 1);
   }
@@ -322,7 +322,7 @@ export class CreateReservationComponent implements OnInit {
 
   increaseQuantity(article: ArticleWithTemp): void {
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
-    
+
     if (article.tempQuantity < maxAvailable) {
       article.tempQuantity++;
     }
@@ -332,7 +332,7 @@ export class CreateReservationComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     let value = parseInt(input.value);
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
-    
+
     // If the value is not a number or is less than 1, set to 1
     if (isNaN(value) || value < 1) {
       value = 1;
@@ -347,13 +347,13 @@ export class CreateReservationComponent implements OnInit {
       value = Math.floor(value);
       input.value = value.toString();
     }
-    
+
     article.tempQuantity = value;
   }
 
   validateQuantity(article: ArticleWithTemp): void {
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
-    
+
     // Ensure valid quantity on blur (when user leaves the input)
     if (!article.tempQuantity || article.tempQuantity < 1) {
       article.tempQuantity = 1;
@@ -386,7 +386,7 @@ export class CreateReservationComponent implements OnInit {
         this.categories = categories;
         this.filteredArticles = [...this.articles];
         this.loading = false;
-        
+
         // Load article availability for the selected date range
         if (this.startDateString && this.endDateString) {
           this.loadArticleAvailability();
@@ -427,8 +427,8 @@ export class CreateReservationComponent implements OnInit {
     }
 
     // Only show active articles with available stock
-    filtered = filtered.filter(article => 
-      article.isActive && 
+    filtered = filtered.filter(article =>
+      article.isActive &&
       (article.quantityAvailable !== undefined ? article.quantityAvailable > 0 : article.quantityTotal > 0)
     );
 
@@ -438,12 +438,12 @@ export class CreateReservationComponent implements OnInit {
   getFilteredArticles(): ArticleWithTemp[] {
     return this.filteredArticles;
   }
-  
+
   private loadArticleAvailability(): void {
     if (!this.startDate || !this.endDate) {
       return;
     }
-    
+
     this.loading = true;
     this.reservationService.getArticlesAvailability(this.startDate, this.endDate).subscribe({
       next: (availabilityData: ArticleAvailability[]) => {
@@ -458,11 +458,11 @@ export class CreateReservationComponent implements OnInit {
           }
           return article;
         });
-        
+
         // Update filtered articles
         this.filterArticles();
         this.loading = false;
-        
+
         // Check if any selected items now exceed available quantity
         this.checkReservationItemsAvailability(availabilityData);
       },
@@ -478,7 +478,7 @@ export class CreateReservationComponent implements OnInit {
     // Check if any selected items now exceed available quantity
     if (this.reservationItems.length > 0) {
       let hasAdjustments = false;
-      
+
       this.reservationItems.forEach(item => {
         const availabilityInfo = availabilityData.find(a => a.id === item.articleId);
         if (availabilityInfo && item.quantity > availabilityInfo.quantityAvailable) {
@@ -487,29 +487,29 @@ export class CreateReservationComponent implements OnInit {
           hasAdjustments = true;
         }
       });
-      
+
       // Filter out items with zero quantity
       const originalLength = this.reservationItems.length;
       this.reservationItems = this.reservationItems.filter(item => item.quantity > 0);
-      
+
       if (hasAdjustments || this.reservationItems.length < originalLength) {
         this.toastr.warning('Certaines quantités ont été ajustées en fonction de la disponibilité');
       }
     }
   }
-  
+
   addArticleToReservation(article: ArticleWithTemp): void {
     if (!article.tempQuantity || article.tempQuantity < 1) {
       return;
     }
-    
+
     const maxAvailable = article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal;
-    
+
     // Ensure we don't exceed available quantity
     if (article.tempQuantity > maxAvailable) {
       article.tempQuantity = maxAvailable;
     }
-    
+
     // Check if there's no available quantity
     if (maxAvailable <= 0) {
       this.toastr.error(`${article.name} n'est pas disponible pour les dates sélectionnées`);
@@ -553,7 +553,7 @@ export class CreateReservationComponent implements OnInit {
     if (!article) return;
 
     const maxAvailable = (article.quantityAvailable !== undefined ? article.quantityAvailable : article.quantityTotal) + item.quantity;
-    
+
     if (newQuantity > maxAvailable) {
       newQuantity = maxAvailable;
       this.toastr.warning(`Quantité maximale disponible: ${maxAvailable}`);
@@ -561,7 +561,7 @@ export class CreateReservationComponent implements OnInit {
 
     // Calculate the difference to update the available quantity
     const quantityDifference = newQuantity - item.quantity;
-    
+
     // Update the available quantity
     if (article.quantityAvailable !== undefined) {
       article.quantityAvailable -= quantityDifference;
@@ -576,7 +576,7 @@ export class CreateReservationComponent implements OnInit {
   removeItem(index: number): void {
     const removedItem = this.reservationItems[index];
     const article = this.articles.find(a => a.id === removedItem.articleId);
-    
+
     // Restore the available quantity when removing from cart
     if (article) {
       if (article.quantityAvailable !== undefined) {
@@ -585,7 +585,7 @@ export class CreateReservationComponent implements OnInit {
         article.quantityAvailable = article.quantityTotal;
       }
     }
-    
+
     this.reservationItems.splice(index, 1);
   }
 
@@ -595,7 +595,7 @@ export class CreateReservationComponent implements OnInit {
     }, 0);
   }
 
- onSubmit(): void {
+  onSubmit(): void {
     const startDate = this.parseDate(this.startDateString);
     const endDate = this.parseDate(this.endDateString);
 
@@ -645,14 +645,14 @@ export class CreateReservationComponent implements OnInit {
         next: (updatedReservation) => {
           this.submitting = false;
           console.log('Reservation updated successfully:', updatedReservation);
-          
+
           // Show success toaster
           this.toastr.success('Réservation mise à jour avec succès!', 'Succès');
-          
+
           // Show success modal
           this.successMessage = 'Votre réservation a été mise à jour avec succès!';
           this.showSuccessModal = true;
-          
+
           this.printReservation();
           this.reservationCreated.emit(updatedReservation);
         },
@@ -666,10 +666,10 @@ export class CreateReservationComponent implements OnInit {
         next: (createdReservation) => {
           this.submitting = false;
           console.log('Reservation created successfully:', createdReservation);
-          
+
           // Show success toaster
           this.toastr.success('Réservation créée avec succès!', 'Succès');
-          
+
           // Show success modal
           this.successMessage = 'Votre réservation a été créée avec succès!';
           this.showSuccessModal = true;
@@ -697,13 +697,13 @@ export class CreateReservationComponent implements OnInit {
     } else if (err.message) {
       errorMessage = err.message;
     }
-    
+
     // Set component error property
     this.error = errorMessage;
-    
+
     // Show error toaster
     this.toastr.error(errorMessage, 'Erreur');
-    
+
     // Show error modal
     this.errorMessage = errorMessage;
     this.showErrorModal = true;
@@ -712,14 +712,14 @@ export class CreateReservationComponent implements OnInit {
   onCancel(): void {
     // Clear all selected items
     this.reservationItems = [];
-  
+
     // Optionally clear other form fields
     this.selectedClientId = null;
     // this.startDateString = '';
     this.remarques = '';
     // this.endDateString = '';
     this.error = null;
-  
+
     // Also close the drawer if it's open
     this.isDrawerOpen = false;
   }
@@ -743,10 +743,10 @@ export class CreateReservationComponent implements OnInit {
   private checkForPastDate(): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const startDate = new Date(this.startDateString);
     startDate.setHours(0, 0, 0, 0);
-    
+
     return startDate < today;
   }
   // Modal properties
@@ -754,14 +754,14 @@ export class CreateReservationComponent implements OnInit {
   successMessage = '';
   showErrorModal = false;
   errorMessage = '';
-  
+
   // Method to print the reservation directly
   printReservation(): void {
     if (!this.selectedClientId) {
       this.toastr.error('Client non sélectionné');
       return;
     }
-    
+
     // Get the client for PDF generation
     this.clientService.getClient(this.selectedClientId).subscribe({
       next: (client) => {
@@ -776,7 +776,7 @@ export class CreateReservationComponent implements OnInit {
           this.editReservationId || undefined,
           this.isEditMode
         );
-        
+
         // Print the PDF
         this.reservationPdfService.printPDF(pdfData);
       },
@@ -786,14 +786,14 @@ export class CreateReservationComponent implements OnInit {
       }
     });
   }
-  
+
   // Method to download the reservation as PDF
   downloadReservationPDF(): void {
     if (!this.selectedClientId) {
       this.toastr.error('Client non sélectionné');
       return;
     }
-    
+
     // Get the client for PDF generation
     this.clientService.getClient(this.selectedClientId).subscribe({
       next: (client) => {
@@ -808,7 +808,7 @@ export class CreateReservationComponent implements OnInit {
           this.editReservationId || undefined,
           this.isEditMode
         );
-        
+
         // Download the PDF
         this.reservationPdfService.downloadPDF(pdfData);
       },
@@ -818,7 +818,7 @@ export class CreateReservationComponent implements OnInit {
       }
     });
   }
-  
+
   // Enhanced save and print method
   saveAndPrintReservation(): void {
     const startDate = this.parseDate(this.startDateString);
@@ -862,7 +862,7 @@ export class CreateReservationComponent implements OnInit {
       this.submitting = false;
       const action = isUpdate ? 'mise à jour' : 'création';
       this.toastr.success(`Réservation ${isUpdate ? 'mise à jour' : 'créée'} avec succès!`);
-      
+
       // Get the client for PDF generation
       if (this.selectedClientId) {
         this.clientService.getClient(this.selectedClientId).subscribe({
@@ -874,7 +874,7 @@ export class CreateReservationComponent implements OnInit {
               this.calculateDays(),
               isUpdate
             );
-            
+
             // Generate and view the PDF
             setTimeout(() => {
               this.reservationPdfService.viewPDF(pdfData);
@@ -886,7 +886,7 @@ export class CreateReservationComponent implements OnInit {
           }
         });
       }
-      
+
       this.reservationCreated.emit(reservation);
     };
 

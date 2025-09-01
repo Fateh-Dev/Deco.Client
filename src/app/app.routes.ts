@@ -8,9 +8,9 @@ import { CalendarComponent } from './components/calendar/calendar.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
-import { LockScreenComponent } from './lock-screen/lock-screen.component';
+import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 import { AuthGuard } from './core/guards/auth.guard';
-import { GalleryComponent } from './gallery/gallery.component';
+import { GalleryComponent } from './components/gallery/gallery.component';
 
 export const routes: Routes = [
   // Public routes

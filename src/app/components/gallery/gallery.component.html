@@ -1,0 +1,456 @@
+<div class="min-h-screen bg-gray-50 p-4 md:p-8">
+  <!-- Error Toast -->
+  <div *ngIf="error" class="fixed top-4 right-4 z-50 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg max-w-sm">
+    <div class="flex justify-between items-start">
+      <div class="flex-1">
+        <p class="font-medium">Error</p>
+        <p class="text-sm">{{ error }}</p>
+      </div>
+      <button (click)="clearError()" class="ml-4 text-red-500 hover:text-red-700">
+        &times;
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Gallery</h1>
+        <p class="text-gray-600">Manage your photo albums</p>
+      </div>
+      <button 
+        (click)="showNewAlbumModal = true"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+      >
+        <span>+</span>
+        <span>New Album</span>
+      </button>
+    </div>
+
+    <!-- Albums Grid -->
+    <div *ngIf="!selectedAlbum" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div 
+        *ngFor="let album of albums" 
+        (click)="selectAlbum(album)"
+        class="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300"
+      >
+        <div class="aspect-w-16 aspect-h-9 bg-gray-100">
+          <img 
+            [src]="album.coverImageUrl || 'assets/placeholder-image.png'" 
+            [alt]="album.title"
+            class="w-full h-48 object-cover"
+          >
+        </div>
+        <div class="p-4">
+          <h3 class="font-medium text-gray-900 truncate">{{ album.title }}</h3>
+          <p class="text-sm text-gray-500">{{ album.imageCount }} {{ album.imageCount === 1 ? 'image' : 'images' }}</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && albums.length === 0" class="col-span-full text-center py-12">
+        <div class="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900">No albums yet</h3>
+        <p class="mt-1 text-gray-500">Get started by creating your first album.</p>
+        <button 
+          (click)="showNewAlbumModal = true"
+          class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center gap-2 transition-colors"
+        >
+          <span>+</span>
+          <span>Create Album</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Album View -->
+    <div *ngIf="selectedAlbum" class="space-y-6">
+      <!-- Album Header -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-4">
+          <button 
+            (click)="goBackToAlbums()"
+            class="text-gray-600 hover:text-gray-900 p-2 rounded-full hover:bg-gray-100"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ selectedAlbum.title }}</h2>
+            <p class="text-gray-600">{{ selectedAlbum.imageCount }} {{ selectedAlbum.imageCount === 1 ? 'image' : 'images' }}</p>
+          </div>
+        </div>
+        
+        <div class="relative">
+          <input 
+            type="file" 
+            id="fileInput"
+            (change)="onFileSelected($event)"
+            multiple
+            accept="image/*"
+            class="hidden"
+          >
+          <label 
+            for="fileInput"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center gap-2 cursor-pointer transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add Images</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Upload Progress -->
+      <div *ngIf="isUploading" class="bg-white p-4 rounded-lg shadow">
+        <p class="text-sm font-medium text-gray-700 mb-2">Uploading... {{ uploadProgress }}%</p>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+            [style.width.%]="uploadProgress"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Images Grid -->
+      <div *ngIf="!isLoading && images.length > 0" class="space-y-4">
+        <!-- Pagination Controls Top -->
+        <div *ngIf="pagination.totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between bg-white p-4 rounded-lg shadow space-y-2 sm:space-y-0">
+          <div class="text-sm text-gray-700">
+            Showing <span class="font-medium">{{ (pagination.currentPage - 1) * pagination.pageSize + 1 }}</span> to 
+            <span class="font-medium">{{ Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems) }}</span> of 
+            <span class="font-medium">{{ pagination.totalItems }}</span> results
+          </div>
+          <div class="flex items-center space-x-1">
+            <button 
+              (click)="changePage(1)" 
+              [disabled]="!pagination.hasPreviousPage"
+              class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              [class.bg-gray-100]="!pagination.hasPreviousPage"
+              [class.bg-white]="pagination.hasPreviousPage"
+              [class.hover:bg-gray-50]="pagination.hasPreviousPage"
+              title="First page"
+            >
+              <span class="sr-only">First page</span>
+              &laquo;
+            </button>
+            <button 
+              (click)="changePage(pagination.currentPage - 1)" 
+              [disabled]="!pagination.hasPreviousPage"
+              class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              [class.bg-gray-100]="!pagination.hasPreviousPage"
+              [class.bg-white]="pagination.hasPreviousPage"
+              [class.hover:bg-gray-50]="pagination.hasPreviousPage"
+              title="Previous page"
+            >
+              <span class="sr-only">Previous page</span>
+              &lsaquo;
+            </button>
+            
+            <!-- Page numbers -->
+            <div class="flex items-center space-x-1">
+              <ng-container *ngFor="let page of getPageNumbers()">
+                <button 
+                  *ngIf="page !== '...'"
+                  (click)="changePage(page)" 
+                  [class.bg-blue-600]="page === pagination.currentPage"
+                  [class.text-white]="page === pagination.currentPage"
+                  [class.font-bold]="page === pagination.currentPage"
+                  [class.hover:bg-blue-700]="page !== pagination.currentPage"
+                  class="w-8 h-8 rounded border flex items-center justify-center text-sm"
+                  [title]="'Page ' + page"
+                >
+                  {{ page }}
+                </button>
+                <span *ngIf="page === '...'" class="px-1">
+                  {{ page }}
+                </span>
+              </ng-container>
+            </div>
+            
+            <button 
+              (click)="changePage(pagination.currentPage + 1)" 
+              [disabled]="!pagination.hasNextPage"
+              class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              [class.bg-gray-100]="!pagination.hasNextPage"
+              [class.bg-white]="pagination.hasNextPage"
+              [class.hover:bg-gray-50]="pagination.hasNextPage"
+              title="Next page"
+            >
+              <span class="sr-only">Next page</span>
+              &rsaquo;
+            </button>
+            <button 
+              (click)="changePage(pagination.totalPages)" 
+              [disabled]="!pagination.hasNextPage"
+              class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              [class.bg-gray-100]="!pagination.hasNextPage"
+              [class.bg-white]="pagination.hasNextPage"
+              [class.hover:bg-gray-50]="pagination.hasNextPage"
+              title="Last page"
+            >
+              <span class="sr-only">Last page</span>
+              &raquo;
+            </button>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div 
+          *ngFor="let image of images" 
+          (click)="viewImage(image)"
+          class="group relative bg-white rounded-lg shadow overflow-hidden cursor-pointer"
+        >
+          <img 
+            [src]="image.fileUrl" 
+            [alt]="image.title || 'Image'"
+            class="w-full h-40 object-cover"
+          >
+          <!-- Delete Button -->
+          <button 
+            (click)="deleteImage(image.id, $event)"
+            class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination Controls Bottom -->
+      <div *ngIf="!isLoading && images.length > 0 && pagination.totalPages > 1" class="mt-4 flex flex-col sm:flex-row items-center justify-between bg-white p-4 rounded-lg shadow space-y-2 sm:space-y-0">
+        <div class="text-sm text-gray-700">
+          Showing <span class="font-medium">{{ (pagination.currentPage - 1) * pagination.pageSize + 1 }}</span> to 
+          <span class="font-medium">{{ Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems) }}</span> of 
+          <span class="font-medium">{{ pagination.totalItems }}</span> results
+        </div>
+        <div class="flex items-center space-x-1">
+          <button 
+            (click)="changePage(1)" 
+            [disabled]="!pagination.hasPreviousPage"
+            class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.bg-gray-100]="!pagination.hasPreviousPage"
+            [class.bg-white]="pagination.hasPreviousPage"
+            [class.hover:bg-gray-50]="pagination.hasPreviousPage"
+            title="First page"
+          >
+            <span class="sr-only">First page</span>
+            &laquo;
+          </button>
+          <button 
+            (click)="changePage(pagination.currentPage - 1)" 
+            [disabled]="!pagination.hasPreviousPage"
+            class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.bg-gray-100]="!pagination.hasPreviousPage"
+            [class.bg-white]="pagination.hasPreviousPage"
+            [class.hover:bg-gray-50]="pagination.hasPreviousPage"
+            title="Previous page"
+          >
+            <span class="sr-only">Previous page</span>
+            &lsaquo;
+          </button>
+          
+          <!-- Page numbers -->
+          <div class="flex items-center space-x-1">
+            <ng-container *ngFor="let page of getPageNumbers()">
+              <button 
+                *ngIf="page !== '...'"
+                (click)="changePage(page)" 
+                [class.bg-blue-600]="page === pagination.currentPage"
+                [class.text-white]="page === pagination.currentPage"
+                [class.font-bold]="page === pagination.currentPage"
+                [class.hover:bg-blue-700]="page !== pagination.currentPage"
+                class="w-8 h-8 rounded border flex items-center justify-center text-sm"
+                [title]="'Page ' + page"
+              >
+                {{ page }}
+              </button>
+              <span *ngIf="page === '...'" class="px-1">
+                {{ page }}
+              </span>
+            </ng-container>
+          </div>
+          
+          <button 
+            (click)="changePage(pagination.currentPage + 1)" 
+            [disabled]="!pagination.hasNextPage"
+            class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.bg-gray-100]="!pagination.hasNextPage"
+            [class.bg-white]="pagination.hasNextPage"
+            [class.hover:bg-gray-50]="pagination.hasNextPage"
+            title="Next page"
+          >
+            <span class="sr-only">Next page</span>
+            &rsaquo;
+          </button>
+          <button 
+            (click)="changePage(pagination.totalPages)" 
+            [disabled]="!pagination.hasNextPage"
+            class="px-2 sm:px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.bg-gray-100]="!pagination.hasNextPage"
+            [class.bg-white]="pagination.hasNextPage"
+            [class.hover:bg-gray-50]="pagination.hasNextPage"
+            title="Last page"
+          >
+            <span class="sr-only">Last page</span>
+            &raquo;
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && images.length === 0" class="bg-white rounded-lg shadow p-12 text-center">
+        <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900">No images in this album</h3>
+        <p class="mt-1 text-gray-500">Upload some images to get started.</p>
+        <div class="mt-6">
+          <input 
+            type="file" 
+            id="emptyFileInput"
+            (change)="onFileSelected($event)"
+            multiple
+            accept="image/*"
+            class="hidden"
+          >
+          <label 
+            for="emptyFileInput"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+          >
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Upload Images
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Album Modal -->
+  <div *ngIf="showNewAlbumModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Create New Album</h3>
+          <button 
+            (click)="showNewAlbumModal = false; newAlbum = { title: '', description: '', coverImageFile: null, coverImageUrl: '' }"
+            class="text-gray-400 hover:text-gray-500"
+          >
+            <span class="sr-only">Close</span>
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <label for="albumTitle" class="block text-sm font-medium text-gray-700">Title *</label>
+            <input 
+              type="text" 
+              id="albumTitle" 
+              [(ngModel)]="newAlbum.title"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="My Awesome Album"
+            >
+          </div>
+          
+          <div>
+            <label for="albumDescription" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea 
+              id="albumDescription" 
+              [(ngModel)]="newAlbum.description"
+              rows="3" 
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="A short description of this album"
+            ></textarea>
+          </div>
+
+          <!-- Cover Image Upload -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Cover Image (Optional)</label>
+            <div class="mt-1 flex items-center">
+              <span class="inline-block h-20 w-20 rounded-md overflow-hidden bg-gray-100">
+                <img 
+                  [src]="newAlbum.coverImageUrl || 'https://placehold.co/80x80?text=No+Cover'" 
+                  [alt]="'Cover for ' + (newAlbum.title || 'album')"
+                  class="h-full w-full object-cover"
+                  onerror="this.src='https://placehold.co/80x80?text=Image+Error'"
+                >
+              </span>
+              <label class="ml-5">
+                <span class="py-2 px-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+                  Choose File
+                </span>
+                <input 
+                  type="file" 
+                  (change)="onCoverImageSelected($event)" 
+                  accept="image/*"
+                  class="sr-only"
+                >
+              </label>
+              <span class="ml-2 text-sm text-gray-500" *ngIf="newAlbum.coverImageFile">
+                {{ newAlbum.coverImageFile.name }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end gap-3">
+          <button 
+            type="button" 
+            (click)="showNewAlbumModal = false; newAlbum = { title: '', description: '', coverImageFile: null, coverImageUrl: '' }"
+            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            (click)="createAlbum()"
+            [disabled]="!newAlbum.title.trim()"
+            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Create Album
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div *ngIf="selectedImage" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+    <div class="relative max-w-4xl w-full max-h-[90vh]">
+      <button 
+        (click)="closeImageModal()"
+        class="absolute -top-10 right-0 text-white hover:text-gray-300"
+      >
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      
+      <img 
+        [src]="selectedImage.fileUrl" 
+        [alt]="selectedImage.title || 'Image'"
+        class="max-w-full max-h-[80vh] mx-auto object-contain"
+      >
+      
+      <div class="mt-4 text-center text-white">
+        <h3 class="text-lg font-medium">{{ selectedImage.title || 'Untitled' }}</h3>
+        <p class="text-sm text-gray-300" *ngIf="selectedImage.description">{{ selectedImage.description }}</p>
+      </div>
+    </div>
+  </div>
+</div>
