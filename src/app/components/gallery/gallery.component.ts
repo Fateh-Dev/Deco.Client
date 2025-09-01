@@ -501,9 +501,75 @@ export class GalleryComponent implements OnInit {
     });
   }
 
+  // Current image index for navigation
+  currentImageIndex = 0;
+  
+  // Track rotation state for each image
+  imageRotations: { [key: number]: number } = {}; // key: imageId, value: rotation in degrees
+  
+  // Check if current image is first in the album
+  get isFirstImage(): boolean {
+    return this.currentImageIndex === 0;
+  }
+  
+  // Check if current image is last in the album
+  get isLastImage(): boolean {
+    return this.currentImageIndex === this.images.length - 1;
+  }
+
   // View image in modal
   viewImage(image: Image) {
     this.selectedImage = image;
+    this.currentImageIndex = this.images.findIndex(img => img.id === image.id);
+    // Initialize rotation if not set
+    if (this.imageRotations[image.id] === undefined) {
+      this.imageRotations[image.id] = 0;
+    }
+    // Focus the modal for keyboard navigation
+    setTimeout(() => {
+      const modal = document.querySelector('[tabindex="0"]') as HTMLElement;
+      if (modal) modal.focus();
+    }, 100);
+  }
+  
+  // Rotate image
+  rotateImage(degrees: number) {
+    if (!this.selectedImage) return;
+    
+    const currentRotation = this.imageRotations[this.selectedImage.id] || 0;
+    const newRotation = (currentRotation + degrees) % 360;
+    this.imageRotations[this.selectedImage.id] = newRotation;
+    
+    // Update the transform style
+    const imgElement = document.querySelector('.image-rotatable') as HTMLElement;
+    if (imgElement) {
+      imgElement.style.transform = `rotate(${newRotation}deg)`;
+    }
+  }
+  
+  // Get current rotation for an image
+  getImageRotation(imageId: number): string {
+    const rotation = this.imageRotations[imageId] || 0;
+    return `rotate(${rotation}deg)`;
+  }
+  
+  // Navigate between images
+  navigateImage(direction: number) {
+    if (direction === -1 && !this.isFirstImage) {
+      this.currentImageIndex--;
+    } else if (direction === 1 && !this.isLastImage) {
+      this.currentImageIndex++;
+    } else {
+      return; // Don't navigate if at the start/end
+    }
+    
+    this.selectedImage = this.images[this.currentImageIndex];
+    
+    // Optional: Scroll to the new image in the grid
+    const imageElement = document.querySelector(`[data-image-id="${this.selectedImage.id}"]`);
+    if (imageElement) {
+      imageElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 
   // Close image modal

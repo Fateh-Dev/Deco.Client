@@ -617,29 +617,76 @@
   </div>
 
   <!-- Image Modal -->
-  <div *ngIf="selectedImage" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
-    <div class="relative max-w-4xl w-full max-h-[90vh]">
-      <button (click)="closeImageModal()"
-        class="absolute -top-8 right-0 text-white hover:text-gray-300 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  <div *ngIf="selectedImage" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4" (keydown.arrowLeft)="navigateImage(-1)" (keydown.arrowRight)="navigateImage(1)" tabindex="0">
+    <div class="relative max-w-4xl w-full max-h-[90vh] flex items-center">
+      <!-- Left Navigation Arrow -->
+      <button *ngIf="images.length > 1" (click)="navigateImage(-1); $event.stopPropagation()" 
+        class="absolute left-0 -ml-12 md:-ml-16 p-2 rounded-full bg-black bg-opacity-50 text-white hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white"
+        [class.opacity-50]="isFirstImage" [class.cursor-not-allowed]="isFirstImage"
+        [class.hidden]="isFirstImage">
+        <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
 
-      <img [src]="selectedImage.fileUrl" [alt]="selectedImage.title || 'Image'"
-        class="max-w-full max-h-[80vh] mx-auto object-contain">
+      <div class="relative w-full">
+        <button (click)="closeImageModal()"
+          class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-      <div class="mt-3 text-center text-white">
-        <h3 class="text-lg font-medium">{{ selectedImage.title || 'Untitled' }}</h3>
-        <p class="text-sm text-gray-300" *ngIf="selectedImage.description">{{ selectedImage.description }}</p>
-        <div class="text-xs text-gray-400 mt-1">
-          <span>{{ selectedImage.fileName }}</span>
-          <span class="mx-2">•</span>
-          <span>{{ (selectedImage.fileSize / 1024 / 1024) | number:'1.1-1' }} MB</span>
-          <span class="mx-2">•</span>
-          <span>{{ selectedImage.uploadedAt | date:'short' }}</span>
+        <div class="relative">
+          <img [src]="selectedImage.fileUrl" [alt]="selectedImage.title || 'Image'"
+            class="image-rotatable max-w-full max-h-[65vh] mx-auto object-contain transition-transform duration-300"
+            [style.transform]="getImageRotation(selectedImage.id)"
+            (click)="$event.stopPropagation()">
+        </div>
+        
+        <!-- Rotation Controls - Bottom Center -->
+        <div class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-6">
+          <button (click)="rotateImage(-90); $event.stopPropagation()"
+            class="p-3 bg-black bg-opacity-70 text-white rounded-full hover:bg-opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-white shadow-lg transform hover:scale-110"
+            title="Rotate 90° counter-clockwise">
+            
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /> </svg>
+            
+          </button>
+          <!-- <div class="h-10 w-px bg-white bg-opacity-30 my-auto"></div>
+          <button (click)="rotateImage(90); $event.stopPropagation()"
+            class="p-3 bg-black bg-opacity-70 text-white rounded-full hover:bg-opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-white shadow-lg transform hover:scale-110"
+            title="Rotate 90° clockwise">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 4v5h-.582m0 0a8.001 8.001 0 00-15.356 2m15.356-2H15m-5.356 11H4v-5m0 0a8.003 8.003 0 0115.357-2m-15.357 2H9" />
+            </svg>
+          </button> -->
+        </div>
+
+        <div class="mt-3 text-center text-white">
+          <h3 class="text-lg font-medium">{{ selectedImage.title || 'Untitled' }}</h3>
+          <p class="text-sm text-gray-300" *ngIf="selectedImage.description">{{ selectedImage.description }}</p>
+          <div class="text-xs text-gray-400 mt-1">
+            <span>{{ selectedImage.fileName }}</span>
+            <span class="mx-2">•</span>
+            <span>{{ (selectedImage.fileSize / 1024 / 1024) | number:'1.1-1' }} MB</span>
+            <span class="mx-2">•</span>
+            <span>{{ selectedImage.uploadedAt | date:'short' }}</span>
+            <span class="mx-2">•</span>
+            <span>{{ currentImageIndex + 1 }} of {{ images.length }}</span>
+          </div>
         </div>
       </div>
+
+      <!-- Right Navigation Arrow -->
+      <button *ngIf="images.length > 1" (click)="navigateImage(1); $event.stopPropagation()"
+        class="absolute right-0 -mr-12 md:-mr-16 p-2 rounded-full bg-black bg-opacity-50 text-white hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white"
+        [class.opacity-50]="isLastImage" [class.cursor-not-allowed]="isLastImage"
+        [class.hidden]="isLastImage">
+        <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
     </div>
   </div>
 </div>
