@@ -79,9 +79,29 @@ export class GalleryService {
     );
   }
 
-  createAlbum(album: { title: string; description?: string; coverImageUrl?: string }): Observable<Album> {
-    return this.http.post<Album>(this.apiUrl, album, { 
-      headers: this.getAuthHeaders() 
+  createAlbum(album: { title: string; description?: string }, coverImageFile?: File): Observable<Album> {
+    const formData = new FormData();
+    formData.append('title', album.title);
+    
+    if (album.description !== undefined && album.description !== null) {
+      formData.append('description', album.description);
+    }
+    
+    if (coverImageFile) {
+      // Handle JFIF files properly
+      const fileExt = coverImageFile.name.split('.').pop()?.toLowerCase();
+      const fileType = fileExt === 'jfif' ? 'image/jpeg' : coverImageFile.type;
+      const blob = coverImageFile.slice(0, coverImageFile.size, fileType);
+      const renamedFile = new File([blob], coverImageFile.name, { type: fileType });
+      formData.append('coverImage', renamedFile);
+    }
+
+    // Get headers and remove Content-Type to let the browser set it with the correct boundary
+    const headers = this.getAuthHeaders();
+    headers.delete('Content-Type');
+    
+    return this.http.post<Album>(this.apiUrl, formData, { 
+      headers: headers
     }).pipe(
       map(createdAlbum => ({
         ...createdAlbum,
@@ -100,16 +120,29 @@ export class GalleryService {
     // Add album properties to form data if they exist
     if (album.title) formData.append('title', album.title);
     if (album.description !== undefined) formData.append('description', album.description || '');
-    if (coverImageFile) formData.append('coverImage', coverImageFile);
+    
+    if (coverImageFile) {
+      // Handle JFIF files properly
+      const fileExt = coverImageFile.name.split('.').pop()?.toLowerCase();
+      const fileType = fileExt === 'jfif' ? 'image/jpeg' : coverImageFile.type;
+      const blob = coverImageFile.slice(0, coverImageFile.size, fileType);
+      const renamedFile = new File([blob], coverImageFile.name, { type: fileType });
+      formData.append('coverImage', renamedFile);
+    }
+
+    // Get headers and remove Content-Type to let the browser set it with the correct boundary
+    const headers = this.getAuthHeaders();
+    headers.delete('Content-Type');
 
     return this.http.put<Album>(`${this.apiUrl}/${id}`, formData, { 
-      headers: this.getAuthHeaders() 
+      headers: headers
     });
   }
 
-  deleteAlbum(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { 
-      headers: this.getAuthHeaders() 
+  // Delete an album
+  deleteAlbum(albumId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${albumId}`, {
+      headers: this.getAuthHeaders()
     });
   }
 
@@ -182,7 +215,38 @@ export class GalleryService {
 
   deleteImage(imageId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/images/${imageId}`, {
-      headers: this.getAuthHeaders() // Fixed: Added missing auth headers
+      headers: this.getAuthHeaders()
     });
   }
+
+  // Create album with form data
+  createAlbumWithFormData(formData: FormData): Observable<Album> {
+    // Get headers and remove Content-Type to let the browser set it with the correct boundary
+    const headers = this.getAuthHeaders();
+    
+    return this.http.post<Album>(this.apiUrl, formData, { 
+      headers: headers
+    }).pipe(
+      map(createdAlbum => ({
+        ...createdAlbum,
+        createdAt: new Date(createdAlbum.createdAt)
+      }))
+    );
+  }
+
+  // Update album with form data
+  updateAlbumWithFormData(albumId: number, formData: FormData): Observable<Album> {
+    // Get headers and remove Content-Type to let the browser set it with the correct boundary
+    const headers = this.getAuthHeaders();
+    
+    return this.http.put<Album>(`${this.apiUrl}/${albumId}`, formData, { 
+      headers: headers
+    }).pipe(
+      map(updatedAlbum => ({
+        ...updatedAlbum,
+        createdAt: new Date(updatedAlbum.createdAt)
+      }))
+    );
+  }
+
 }
